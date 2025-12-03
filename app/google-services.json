@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "724217347813",
+    "project_id": "woodworker-app",
+    "storage_bucket": "woodworker-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:724217347813:android:034ad2da928597aa57de0c",
+        "android_client_info": {
+          "package_name": "com.example.bagrot_work"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCY8Zod2wLorXqdeAGS5DNe4WqOa13duaQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
