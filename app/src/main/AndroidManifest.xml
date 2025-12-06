@@ -13,19 +13,28 @@
         android:theme="@style/Theme.Bagrot_work"
         tools:targetApi="31">
         <activity
-            android:name=".screens.Edit_User"
+            android:name=".screens.EditUser"
             android:exported="false" />
         <activity
-            android:name=".screens.Level1"
+            android:name=".screens.LevelOneActivity"
             android:exported="false" />
         <activity
-            android:name=".screens.editplayer"
+            android:name=".screens.LevelsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".screens.AdminActivity"
+            android:exported="false" />
+        <activity
+            android:name=".screens.EditUser"
+            android:exported="false" />
+        <activity
+            android:name=".screens.LevelOneActivity"
             android:exported="false" />
         <activity
             android:name=".screens.Register"
             android:exported="false" />
         <activity
-            android:name=".screens.Levels"
+            android:name=".screens.LevelsActivity"
             android:exported="false" />
         <activity
             android:name=".screens.Home_page"

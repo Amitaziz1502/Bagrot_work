@@ -326,6 +326,8 @@ public class DatabaseService {
         });
     }
 
+//    public void setAdmin(User user, Boolean)
+
 
     // endregion User Section
 }

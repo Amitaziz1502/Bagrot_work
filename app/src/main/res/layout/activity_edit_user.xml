@@ -3,9 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
+
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".screens.Edit_User"
+    tools:context=".screens.EditUser"
     android:background="#0B1150"
     >
     <ImageView
@@ -17,7 +18,7 @@
         app:layout_constraintStart_toStartOf="parent" />
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/firstNameLayout"
+        android:id="@+id/editFirstNameLayout"
         android:layout_width="352dp"
         android:layout_height="64dp"
         android:layout_margin="16dp"
@@ -30,7 +31,7 @@
         app:layout_constraintHorizontal_bias="0.116"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.452">
+        app:layout_constraintVertical_bias="0.426">
 
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
@@ -41,7 +42,7 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/lastNameLayout"
+        android:id="@+id/editLastNameLayout"
         android:layout_width="352dp"
         android:layout_height="64dp"
         android:layout_margin="16dp"
@@ -54,7 +55,7 @@
         app:layout_constraintHorizontal_bias="0.881"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.449">
+        app:layout_constraintVertical_bias="0.432">
 
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
@@ -65,17 +66,18 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/username_input2"
+        android:id="@+id/editUsername_input2"
         android:layout_width="764dp"
         android:layout_height="58dp"
-        android:layout_marginTop="8dp"
         android:textColorHint="#F6F6F8"
         app:boxBackgroundMode="outline"
         app:hintTextColor="#F6F6F8"
+        app:layout_constraintBottom_toTopOf="@+id/editPassword_input_layout2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/lastNameLayout">
+        app:layout_constraintTop_toBottomOf="@+id/logo5"
+        app:layout_constraintVertical_bias="0.908">
 
         <com.google.android.material.textfield.TextInputEditText
             android:layout_width="match_parent"
@@ -87,7 +89,7 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/password_input_layout2"
+        android:id="@+id/editPassword_input_layout2"
         android:layout_width="764dp"
         android:layout_height="58dp"
         android:layout_marginBottom="52dp"
@@ -98,7 +100,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/username_input2"
         app:layout_constraintVertical_bias="0.183">
 
         <com.google.android.material.textfield.TextInputEditText
@@ -111,7 +112,7 @@
     </com.google.android.material.textfield.TextInputLayout>
 
     <ImageButton
-        android:id="@+id/enterBtn"
+        android:id="@+id/btnUpdate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="#0B1150"
@@ -122,5 +123,18 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.957"
         app:srcCompat="@drawable/login__1_" />
+
+    <ImageButton
+        android:id="@+id/btnReturnHome"
+        android:layout_width="66dp"
+        android:layout_height="72dp"
+        android:layout_marginStart="16dp"
+        android:background="#0B1150"
+
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.047"
+        app:srcCompat="@drawable/exit__1_" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -8,26 +8,29 @@ public class User implements Serializable {
     private String lastname;
     private String username;
     private String password;
+    private boolean isAdmin;
     private PlayerAppearance appearance;
     private Integer currentlevel;
+    public User(){}
 
-    public User() {}
-
-    public User(String id, String firstname, String lastname, String username, String password, Integer currentlevel) {
+    public User(String id, String firstname, String lastname, String username, String password, Integer currentlevel, boolean isAdmin) {
         this.id = id;
         this.firstname = firstname;
         this.lastname = lastname;
         this.username = username;
         this.password = password;
+        this.isAdmin = isAdmin;
         this.currentlevel = currentlevel;
         appearance = new PlayerAppearance(0,0);
     }
 
     public String getId() {
+
         return id;
     }
 
     public void setId(String id) {
+
         this.id = id;
     }
 
@@ -73,7 +76,12 @@ public class User implements Serializable {
     public void levelUp() {
         this.currentlevel++;
     }
-
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+    public void setAdmin(boolean admin) {
+        isAdmin = admin;
+    }
     public PlayerAppearance getAppearance() {
         return appearance;
     }

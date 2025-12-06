@@ -10,15 +10,15 @@
 
     <ImageView
         android:id="@+id/imageView"
-        android:layout_width="286dp"
-        android:layout_height="207dp"
+        android:layout_width="275dp"
+        android:layout_height="198dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:srcCompat="@drawable/__2025_11_18_182540"
         tools:layout_editor_absoluteY="0dp" />
 
     <ImageButton
-        android:id="@+id/floatingButton"
+        android:id="@+id/btnToLevelMap"
         android:layout_width="148dp"
         android:layout_height="151dp"
         android:background="#0B1150"
@@ -32,8 +32,8 @@
 
     <ImageButton
         android:id="@+id/sign_out"
-        android:layout_width="131dp"
-        android:layout_height="111dp"
+        android:layout_width="147dp"
+        android:layout_height="83dp"
         android:layout_marginStart="16dp"
         android:background="#0B1150"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -48,8 +48,8 @@
         android:layout_height="113dp"
         android:background="#0B1150"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/floatingButton"
-        app:layout_constraintHorizontal_bias="0.863"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.265"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.765"
@@ -60,8 +60,40 @@
         android:layout_width="114dp"
         android:layout_height="113dp"
         android:background="#0B1150"
-        app:srcCompat="@drawable/edit_info__1_"
-        tools:layout_editor_absoluteX="550dp"
-        tools:layout_editor_absoluteY="228dp" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.727"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.765"
+        app:srcCompat="@drawable/edit_info__1_" />
+
+    <TextView
+        android:id="@+id/tvUserDisplayName"
+        android:layout_width="170dp"
+        android:layout_height="27dp"
+        android:layout_marginEnd="16dp"
+        android:fontFamily="@font/adlam_display"
+        android:text="name"
+        android:textColor="#ffffff"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.046" />
+
+    <ImageButton
+        android:id="@+id/btnAdminPage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#0B1150"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.639"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.472"
+        app:srcCompat="@drawable/admin_panel__1_" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

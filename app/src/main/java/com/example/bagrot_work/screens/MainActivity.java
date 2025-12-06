@@ -1,5 +1,7 @@
 package com.example.bagrot_work.screens;
 
+import static android.content.ContentValues.TAG;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -24,7 +26,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
     private TextInputLayout usernameLayout, passwordLayout;
     private ImageButton btnLogin;
     private static final String TAG = "MainActivity";
-
+    private User user;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,7 +58,6 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
         usernameLayout = findViewById(R.id.username_input);
         passwordLayout = findViewById(R.id.password_input_layout);
         btnLogin = findViewById(R.id.enter_icon);
-
         btnLogin.setOnClickListener(this);
 
     }
@@ -92,24 +93,18 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
             startActivity(registerIntent);
         }
     }
-    private boolean checkInput(String Username, String password) {
-        if (!Validator.isUsernameValid(Username)) {
-            Log.e(TAG, "checkInput: Invalid username address");
-            /// show error message to user
-            usernameLayout.setError("Invalid username address");
-            /// set focus to email field
-            usernameLayout.requestFocus();
-            return false;
-        }
-        return true;
-
-    }
     private void loginUser(String Username, String password) {
         databaseService.getUserByUsernameAndPassword(Username, password, new DatabaseService.DatabaseCallback<User>() {
             /// Callback method called when the operation is completed
+            ///
             /// @param user the user object that is logged in
             @Override
             public void onCompleted(User user) {
+                if (user == null) {
+                    passwordLayout.setError("Invalid Password");
+                    usernameLayout.setError("Invalid Username");
+                    return;
+                }
                 Log.d(TAG, "onCompleted: User logged in: " + user.toString());
                 /// save the user data to shared preferences
                 SharedPreferencesUtil.saveUser(MainActivity.this, user);
@@ -128,8 +123,28 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
                 passwordLayout.requestFocus();
                 /// Sign out the user if failed to retrieve user data
                 /// This is to prevent the user from being logged in again
-                SharedPreferencesUtil.signOutUser(MainActivity.this);
             }
         });
+    }
+    private boolean checkInput(String Username, String Password) {
+
+        if (!Validator.isUsernameValid(Username)) {
+            Log.e(TAG, "checkInput: Username have to be at least 3 characters long");
+            usernameLayout.setError("Username have to be at least 3 characters long");
+            usernameLayout.requestFocus();
+            return false;
+        }
+
+
+        if (!Validator.isPasswordValid(Password)) {
+            Log.e(TAG, "checkInput: Password must be at least 6 characters long");
+            passwordLayout.setError("Password must be at least 6 characters long");
+            passwordLayout.requestFocus();
+            return false;
+        }
+
+
+        Log.d(TAG, "checkInput: Input is valid");
+        return true;
     }
 }
