@@ -13,6 +13,7 @@ import android.view.SurfaceView;
 
 import com.example.bagrot_work.R;
 
+
 public class GameView extends SurfaceView implements Runnable {
 
     private Thread gameThread;
@@ -41,6 +42,18 @@ public class GameView extends SurfaceView implements Runnable {
     private Bitmap backgroundImage;
     private Bitmap scaledBackground;
     private Bitmap characterImage;
+    private Bitmap coinimage;
+
+    //Coin scales
+    private float coinX=1200;
+    private float coinY = 600;
+
+
+
+    //WorldOffset settings
+    private float backgroundScroll;
+
+
 
     // FPS control
     private final int FPS = 60;
@@ -59,6 +72,8 @@ public class GameView extends SurfaceView implements Runnable {
     private void init() {
         surfaceHolder = getHolder();
         paint = new Paint();
+        paint.setAntiAlias(true);// Making the drawing smoother
+        paint.setColor(Color.parseColor("#353C6F"));// Setting the color one time
     }
 
     @Override
@@ -70,7 +85,11 @@ public class GameView extends SurfaceView implements Runnable {
 
     private void loadBitmaps() {
         if (backgroundImage == null) {
-            backgroundImage = BitmapFactory.decodeResource(getResources(), R.drawable.backroundhorizentle);
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inPreferredConfig = Bitmap.Config.RGB_565; // חוסך 50% מהעומס
+            options.inScaled = true; // מאפשר למערכת לבצע אופטימיזציה לגודל המסך
+            backgroundImage = BitmapFactory.decodeResource(getResources(), R.drawable.backroundhorizentle, options);
+
         }
 
         if (characterImage == null) {
@@ -80,13 +99,20 @@ public class GameView extends SurfaceView implements Runnable {
                 originalCharacter.recycle();
             }
         }
+
+        if (coinimage == null) {
+            Bitmap originalCoin = BitmapFactory.decodeResource(getResources(), R.drawable.triangle);
+            coinimage = Bitmap.createScaledBitmap(originalCoin, 100, 100, false);
+        }
     }
 
     private void scaleBackgroundIfNeeded() {
         if (backgroundImage == null) return;
 
         if (scaledBackground == null && getWidth() > 0 && getHeight() > 0) {
-            scaledBackground = Bitmap.createScaledBitmap(backgroundImage, getWidth(), getHeight(), false);
+            int newHeight = getHeight()+150;
+            int newWidth = getWidth()+300;
+            scaledBackground = Bitmap.createScaledBitmap(backgroundImage, newWidth, newHeight, false);
         }
     }
 
@@ -109,7 +135,7 @@ public class GameView extends SurfaceView implements Runnable {
                 try {
                     Thread.sleep(sleepTime);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    //e.printStackTrace();
                 }
             }
         }
@@ -120,8 +146,11 @@ public class GameView extends SurfaceView implements Runnable {
         velocityY += gravity;
         playerY += velocityY;
 
+        //Setting the worldoffset background movement
+        backgroundScroll = Math.min(worldOffset, 200);
+
         // Ground collision
-        float groundY = getHeight() - 300 - playerSize;
+        float groundY = getHeight() - 200 - playerSize;
         if (playerY >= groundY) {
             playerY = groundY;
             velocityY = 0;
@@ -146,26 +175,34 @@ public class GameView extends SurfaceView implements Runnable {
 
     private void draw() {
         if (!surfaceHolder.getSurface().isValid()) return;
-
         Canvas canvas = surfaceHolder.lockCanvas();
         if (canvas == null) return;
 
         try {
+            // Calculating the background movement
+            float backgroundscroll = worldOffset > 200 ? 200 : worldOffset;
+
+            // Drawing background
             if (scaledBackground != null) {
-                canvas.drawBitmap(scaledBackground, 0, 0, paint);
+                canvas.drawBitmap(scaledBackground, -backgroundscroll, -150, paint);
             } else {
                 canvas.drawColor(Color.BLACK);
             }
-
+//
             canvas.save();
-
             canvas.translate(-worldOffset, 0);
+//
+            //Drawing floor ( PAINT WAS ALREADY SETTLED IN INIT)
+            canvas.drawRect(0, getHeight() - 200, 10000, getHeight(), paint);
 
-            paint.setColor(Color.parseColor("#353C6F"));
-            canvas.drawRect(0, getHeight() - 300, 10000, getHeight(), paint);
+            //Drawing coin
+            if (coinimage != null) {
+                canvas.drawBitmap(coinimage, coinX, coinY, null);
+            }
 
+            //Drawing player
             if (characterImage != null) {
-                canvas.drawBitmap(characterImage, playerX, playerY, null);
+                canvas.drawBitmap(characterImage, playerX, playerY, paint);
             }
 
             canvas.restore();
