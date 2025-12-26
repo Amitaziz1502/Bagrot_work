@@ -37,6 +37,8 @@ public class LevelsActivity extends BaseActivity implements View.OnClickListener
         ImageButton btnFloat8 = findViewById(R.id.btnLevel8);
         ImageButton btnFloat9 = findViewById(R.id.btnLevel9);
         ImageButton btnFloat10 = findViewById(R.id.btnLevel10);
+        ImageButton btnReturnHome = findViewById(R.id.btnGoHome);
+        btnReturnHome.setOnClickListener(this);
         btnFloat.setOnClickListener(this);
 
     }
@@ -44,8 +46,13 @@ public class LevelsActivity extends BaseActivity implements View.OnClickListener
     @Override
     public void onClick(View v) {
         if(v.getId() == R.id.btnLevel1){
-            Intent goToLevel1 = new Intent(LevelsActivity.this, EditUser.class);
+            Intent goToLevel1 = new Intent(LevelsActivity.this, LevelOneActivity.class);
             startActivity(goToLevel1);
+        }
+        if(v.getId() == R.id.btnGoHome){
+            Intent ReturnHome = new Intent(LevelsActivity.this, Home_page.class);
+            startActivity(ReturnHome);
+
         }
     }
 }

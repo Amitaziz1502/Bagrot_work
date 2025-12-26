@@ -12,11 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Bagrot_work"
         tools:targetApi="31">
+
         <activity
             android:name=".screens.EditUser"
-            android:exported="false" />
-        <activity
-            android:name=".screens.LevelOneActivity"
             android:exported="false" />
         <activity
             android:name=".screens.LevelsActivity"
@@ -25,26 +23,16 @@
             android:name=".screens.AdminActivity"
             android:exported="false" />
         <activity
-            android:name=".screens.EditUser"
-            android:exported="false" />
-        <activity
-            android:name=".screens.LevelOneActivity"
-            android:exported="false" />
-        <activity
             android:name=".screens.Register"
-            android:exported="false" />
-        <activity
-            android:name=".screens.LevelsActivity"
             android:exported="false" />
         <activity
             android:name=".screens.Home_page"
             android:exported="false" />
         <activity
-            android:name=".screens.MainActivity"
+            android:name=".screens.LevelOneActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

@@ -1,6 +1,11 @@
 package com.example.bagrot_work.screens;
 
+import android.annotation.SuppressLint;
+import android.media.Image;
 import android.os.Bundle;
+import android.view.MotionEvent;
+import android.widget.Button;
+import android.widget.ImageButton;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,7 +16,11 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.bagrot_work.R;
 
 public class LevelOneActivity extends AppCompatActivity {
+    private GameView gameView;
+    private ImageButton moveRight, moveLeft;
 
+
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -22,5 +31,41 @@ public class LevelOneActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        gameView = findViewById(R.id.gameView);
+        moveRight= findViewById(R.id.move_right);
+        moveLeft= findViewById(R.id.move_left);
+
+        moveRight.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                gameView.moveRight(true);
+            } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                gameView.moveRight(false);
+            }
+            return true;
+        });
+
+        moveLeft.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                gameView.moveLeft(true);
+            } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                gameView.moveLeft(false);
+            }
+            return true;
+        });
+
+
+
+    }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        gameView.resume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        gameView.pause();
     }
 }
