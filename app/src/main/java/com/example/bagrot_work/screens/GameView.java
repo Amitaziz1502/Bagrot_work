@@ -6,12 +6,16 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import com.example.bagrot_work.R;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class GameView extends SurfaceView implements Runnable {
@@ -32,7 +36,7 @@ public class GameView extends SurfaceView implements Runnable {
     // Movement
     private float scrollSpeed = 5;
     private float worldOffset = 0;
-    private float moveSpeed = 10f;
+    private float moveSpeed = 15f;
 
     // Movement controls
     private boolean movingLeft = false;
@@ -42,18 +46,23 @@ public class GameView extends SurfaceView implements Runnable {
     private Bitmap backgroundImage;
     private Bitmap scaledBackground;
     private Bitmap characterImage;
-    private Bitmap coinimage;
+    private Bitmap spikeimage;
 
-    //Coin scales
-    private float coinX=1200;
-    private float coinY = 600;
+    //Spikes settings
+    private List<Rect> spikes = new ArrayList<>();
 
-
+    // If player reacts with the spike
+    private List<Particle> particles = new ArrayList<>();
+    private boolean isDead = false;
 
     //WorldOffset settings
     private float backgroundScroll;
 
+    //Platform settings
+    private List<Rect> platforms = new ArrayList<>();
 
+    //Player Collision with obstacles
+    private Rect playerRect = new Rect();
 
     // FPS control
     private final int FPS = 60;
@@ -73,6 +82,8 @@ public class GameView extends SurfaceView implements Runnable {
         surfaceHolder = getHolder();
         paint = new Paint();
         paint.setAntiAlias(true);// Making the drawing smoother
+        paint.setFilterBitmap(false); // Make the pictures smoother
+        paint.setAntiAlias(false);//Giving a nice fps push
         paint.setColor(Color.parseColor("#353C6F"));// Setting the color one time
     }
 
@@ -80,14 +91,15 @@ public class GameView extends SurfaceView implements Runnable {
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         loadBitmaps();
+        createPlatforms();
         scaleBackgroundIfNeeded();
     }
 
     private void loadBitmaps() {
         if (backgroundImage == null) {
             BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inPreferredConfig = Bitmap.Config.RGB_565; // חוסך 50% מהעומס
-            options.inScaled = true; // מאפשר למערכת לבצע אופטימיזציה לגודל המסך
+            options.inPreferredConfig = Bitmap.Config.RGB_565; // Saves 50% of the power
+            options.inScaled = true;
             backgroundImage = BitmapFactory.decodeResource(getResources(), R.drawable.backroundhorizentle, options);
 
         }
@@ -100,9 +112,9 @@ public class GameView extends SurfaceView implements Runnable {
             }
         }
 
-        if (coinimage == null) {
-            Bitmap originalCoin = BitmapFactory.decodeResource(getResources(), R.drawable.triangle);
-            coinimage = Bitmap.createScaledBitmap(originalCoin, 100, 100, false);
+        if (spikeimage == null) {
+            Bitmap originalspike = BitmapFactory.decodeResource(getResources(), R.drawable.up_arrow__1_);
+            spikeimage = Bitmap.createScaledBitmap(originalspike, 100, 100, false);
         }
     }
 
@@ -142,35 +154,108 @@ public class GameView extends SurfaceView implements Runnable {
     }
 
     private void update() {
-        // Apply gravity
-        velocityY += gravity;
-        playerY += velocityY;
+        // Restoring character only if he's alive
+        if (!isDead) {
+            // Gravity
+            velocityY += gravity;
+            playerY += velocityY;
 
-        //Setting the worldoffset background movement
-        backgroundScroll = Math.min(worldOffset, 200);
+            // Horizontal movement
+            if (movingLeft) playerX -= moveSpeed;
+            if (movingRight) playerX += moveSpeed;
 
-        // Ground collision
-        float groundY = getHeight() - 200 - playerSize;
-        if (playerY >= groundY) {
-            playerY = groundY;
-            velocityY = 0;
-            isJumping = false;
+            // Checking if player is on the floor
+            float groundY = getHeight() - 200 - playerSize;
+            if (playerY >= groundY) {
+                playerY = groundY;
+                velocityY = 0;
+                isJumping = false;
+            }
+
+            // checking Collision with the spike
+            playerRect.set((int)playerX, (int)playerY, (int)(playerX + playerSize), (int)(playerY + playerSize));
+
+            for (Rect spike : spikes) {
+                // Checking if the player is 500px from the spike, so they will only check the spikes which in eye reach
+                if (Math.abs(spike.left - playerX) < 1000) {
+                    if (Rect.intersects(playerRect, spike)) {
+                        isDead = true;
+                        particles.clear();
+                        for (int i = 0; i < 30; i++) {
+                            particles.add(new Particle(playerX + playerSize/2, playerY + playerSize/2));
+                        }
+                        break;
+                    }
+                }
+            }
+
+
+            //Collision with the platforms
+            for (Rect platform : platforms) {
+                if (Rect.intersects(playerRect, platform)) {
+                    //If the player tries to go throw the platform from the bottom
+                    if (velocityY < 0 && playerY < platform.bottom && playerY > platform.top) {
+                        playerY = platform.bottom;
+                        velocityY = 0; // Start falling instantly
+                    }
+                    // Unavailing the player to go throw the platform from the top
+                    if (velocityY > 0 && (playerY + playerSize) <= (platform.top + velocityY + 15)) {
+                        playerY = platform.top - playerSize;
+                        velocityY = 0;
+                        isJumping = false;
+                    }
+                    else {
+                        // If the player trying to go from the left side of the platform
+                        if (playerX + playerSize > platform.left && playerX < platform.left) {
+                            playerX = platform.left - playerSize;
+                        }
+                        // If the player trying to go from the right side of the platform
+                        else if (playerX < platform.right && playerX + playerSize > platform.right) {
+                            playerX = platform.right;
+                        }
+                    }
+                }
+            }
+
         }
 
-        // Horizontal movement
-        if (movingLeft) playerX -= moveSpeed;
-        if (movingRight) playerX += moveSpeed;
+        // Updating the exploding particles
+        for (int i = particles.size() - 1; i >= 0; i--) {
+            Particle p = particles.get(i);
+            p.update();
 
+            // When the particle is gone I remove him
+            if (p.alpha <= 0) {
+                particles.remove(i);
+            }
+        }
+
+        // Auto restore when the particles are gone
+        if (isDead && particles.isEmpty()) {
+            resetPlayer();
+        }
+
+        // World-offset control
         if (playerX > (float) getWidth() / 2) {
             worldOffset = playerX - (float) getWidth() / 2;
-        }else{
-            worldOffset=0;
+        } else {
+            worldOffset = 0;
         }
 
-        // Keep player in bounds
+        // Setting the players boundaries
         if (playerX < 0) playerX = 0;
         if (playerX > 10000 - playerSize) playerX = 10000 - playerSize;
 
+    }
+
+    // Functions that help restore the player
+    private void resetPlayer() {
+        playerX = 200;
+        playerY = 500;
+        velocityY = 0;
+        worldOffset = 0;
+        isDead = false;
+        particles.clear(); // Just in case removing the particles
     }
 
     private void draw() {
@@ -179,31 +264,54 @@ public class GameView extends SurfaceView implements Runnable {
         if (canvas == null) return;
 
         try {
-            // Calculating the background movement
+            //Drawing Background
             float backgroundscroll = worldOffset > 200 ? 200 : worldOffset;
-
-            // Drawing background
             if (scaledBackground != null) {
                 canvas.drawBitmap(scaledBackground, -backgroundscroll, -150, paint);
             } else {
                 canvas.drawColor(Color.BLACK);
             }
-//
+
+            //Starting to set world ( camera )
             canvas.save();
             canvas.translate(-worldOffset, 0);
-//
-            //Drawing floor ( PAINT WAS ALREADY SETTLED IN INIT)
-            canvas.drawRect(0, getHeight() - 200, 10000, getHeight(), paint);
 
-            //Drawing coin
-            if (coinimage != null) {
-                canvas.drawBitmap(coinimage, coinX, coinY, null);
+            //Drawing floor + obstecals
+            canvas.drawRect(worldOffset, getHeight() - 200, worldOffset + getWidth(), getHeight(), paint);            for (Rect spike : spikes) {
+                if (spike.right > worldOffset && spike.left < worldOffset + getWidth()) {
+
+                    // A loop that draws the spikes over and over again
+                    for (int x = spike.left; x < spike.right; x += 100) {
+                        if (x + 100 > worldOffset && x < worldOffset + getWidth()) {
+                            canvas.drawBitmap(spikeimage, x, spike.top, null);
+                        }
+                    }
+                }
             }
 
-            //Drawing player
-            if (characterImage != null) {
-                canvas.drawBitmap(characterImage, playerX, playerY, paint);
+            //Redrawing the player after death
+            if (!isDead) {
+                if (characterImage != null) {
+                    canvas.drawBitmap(characterImage, playerX, playerY, paint);
+                }
+            } else {
+                //Drawing the explosion in the death place
+                for (Particle p : particles) {
+                    paint.setAlpha(p.alpha);
+                    canvas.drawRect(p.x, p.y, p.x + 15, p.y + 15, paint);
+                }
+                paint.setAlpha(255);
             }
+
+
+            //Drawing the platforms
+            paint.setColor(Color.GRAY);
+            for (Rect platform : platforms) {
+                if (platform.right > worldOffset && platform.left < worldOffset + getWidth()) {
+                    canvas.drawRect(platform, paint);
+                }
+            }
+            paint.setColor(Color.parseColor("#353C6F"));
 
             canvas.restore();
 
@@ -273,10 +381,51 @@ public class GameView extends SurfaceView implements Runnable {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            if (event.getX() > getWidth() / 2) {
+            if (event.getX() > (float) getWidth() / 2) {
                 jump();
             }
         }
         return true;
     }
+    class Particle {
+        float x, y, vx, vy;
+        int alpha = 255;
+
+        Particle(float x, float y) {
+            this.x = x;
+            this.y = y;
+            // Random speed to all directions
+            this.vx = (float) (Math.random() * 20 - 10);
+            this.vy = (float) (Math.random() * 20 - 10);
+        }
+
+        void update() {
+            x += vx;
+            y += vy;
+            alpha -= 5; // The particle is slowly disapering
+        }
+    }
+    private void createPlatforms() {
+
+
+        platforms.clear();
+        spikes.clear();
+
+        //Platforms
+        // First platform
+        platforms.add(new Rect(1900, 600, 2200, 650));
+        // Second platform
+        platforms.add(new Rect(2500, 450, 2800, 500));
+        // Third platform
+        platforms.add(new Rect(3100, 300, 3400, 350));
+
+        //Spikes
+
+        spikes.add(new Rect(1200, 653, 1300, 753));
+        spikes.add(new Rect(2200, 653, 3400, 753));
+
+
+
+    }
+
 }
