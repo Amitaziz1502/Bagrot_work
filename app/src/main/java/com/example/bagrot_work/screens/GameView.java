@@ -28,9 +28,10 @@ public class GameView extends SurfaceView implements Runnable {
     // Player properties
     private float playerX = 200;
     private float playerY = 500;
-    private float playerSize = 150;
+    private float playerSize = 200;
     private float velocityY = 0;
     private float gravity = 2f;
+    private boolean isMoving = false;
     private boolean isJumping = false;
 
     // Movement
@@ -63,6 +64,20 @@ public class GameView extends SurfaceView implements Runnable {
 
     //Player Collision with obstacles
     private Rect playerRect = new Rect();
+
+    //cat running animation
+    private Bitmap spriteSheet;
+    private int frameCount = 5;
+    private int currentFrame = 0;
+    private long lastFrameTime = 0;
+    private int frameDuration = 100; //animation speed
+
+
+    //cat idle animation
+    private Bitmap idleSpriteSheet;
+    private int idleFrameCount = 2; //
+    private int idleCurrentFrame = 0;
+    private long lastIdleFrameTime = 0;
 
     // FPS control
     private final int FPS = 60;
@@ -104,17 +119,17 @@ public class GameView extends SurfaceView implements Runnable {
 
         }
 
-        if (characterImage == null) {
-            Bitmap originalCharacter = BitmapFactory.decodeResource(getResources(), R.drawable.gamecharacterimprove);
-            characterImage = Bitmap.createScaledBitmap(originalCharacter, (int) playerSize, (int) playerSize, false);
-            if (originalCharacter != characterImage) {
-                originalCharacter.recycle();
-            }
+        if (spriteSheet == null) {
+            spriteSheet = BitmapFactory.decodeResource(getResources(), R.drawable.cat_run_spritesheet);
+
         }
 
         if (spikeimage == null) {
             Bitmap originalspike = BitmapFactory.decodeResource(getResources(), R.drawable.up_arrow__1_);
             spikeimage = Bitmap.createScaledBitmap(originalspike, 100, 100, false);
+        }
+        if (idleSpriteSheet == null) {
+            idleSpriteSheet = BitmapFactory.decodeResource(getResources(), R.drawable.idle_cat_spritesheet);
         }
     }
 
@@ -165,7 +180,7 @@ public class GameView extends SurfaceView implements Runnable {
             if (movingRight) playerX += moveSpeed;
 
             // Checking if player is on the floor
-            float groundY = getHeight() - 200 - playerSize;
+            float groundY = getHeight() - 200 - playerSize + 15;
             if (playerY >= groundY) {
                 playerY = groundY;
                 velocityY = 0;
@@ -264,7 +279,7 @@ public class GameView extends SurfaceView implements Runnable {
         if (canvas == null) return;
 
         try {
-            //Drawing Background
+            // Drawing background
             float backgroundscroll = worldOffset > 200 ? 200 : worldOffset;
             if (scaledBackground != null) {
                 canvas.drawBitmap(scaledBackground, -backgroundscroll, -150, paint);
@@ -272,15 +287,14 @@ public class GameView extends SurfaceView implements Runnable {
                 canvas.drawColor(Color.BLACK);
             }
 
-            //Starting to set world ( camera )
+            // Setting world
             canvas.save();
             canvas.translate(-worldOffset, 0);
 
-            //Drawing floor + obstecals
-            canvas.drawRect(worldOffset, getHeight() - 200, worldOffset + getWidth(), getHeight(), paint);            for (Rect spike : spikes) {
+            // Drawing floor + obstecals
+            canvas.drawRect(worldOffset, getHeight() - 200, worldOffset + getWidth(), getHeight(), paint);
+            for (Rect spike : spikes) {
                 if (spike.right > worldOffset && spike.left < worldOffset + getWidth()) {
-
-                    // A loop that draws the spikes over and over again
                     for (int x = spike.left; x < spike.right; x += 100) {
                         if (x + 100 > worldOffset && x < worldOffset + getWidth()) {
                             canvas.drawBitmap(spikeimage, x, spike.top, null);
@@ -289,22 +303,65 @@ public class GameView extends SurfaceView implements Runnable {
                 }
             }
 
-            //Redrawing the player after death
+            // Drawing particles ( using in death  )
+            for (int i = 0; i < particles.size(); i++) {
+                Particle p = particles.get(i);
+                paint.setAlpha(p.alpha);
+                canvas.drawRect(p.x, p.y, p.x + 8, p.y + 8, paint);
+            }
+            paint.setAlpha(255);
+
+            // Drawing player animation (both sides)
             if (!isDead) {
-                if (characterImage != null) {
-                    canvas.drawBitmap(characterImage, playerX, playerY, paint);
+                canvas.save();
+
+
+                if (movingLeft) {
+                    canvas.scale(-1, 1, playerX + playerSize / 2, playerY + playerSize / 2);
                 }
-            } else {
-                //Drawing the explosion in the death place
-                for (Particle p : particles) {
-                    paint.setAlpha(p.alpha);
-                    canvas.drawRect(p.x, p.y, p.x + 15, p.y + 15, paint);
+
+                Bitmap currentSheet;
+                int currentTotalFrames;
+                int frameToDraw;
+
+                if (movingLeft || movingRight) {
+                    // Running mode
+                    currentSheet = spriteSheet;
+                    currentTotalFrames = frameCount;
+
+                    long time = System.currentTimeMillis();
+                    if (time - lastFrameTime > frameDuration) {
+                        currentFrame = (currentFrame + 1) % frameCount;
+                        lastFrameTime = time;
+                    }
+                    frameToDraw = currentFrame;
+                } else {
+                    // Idle mode
+                    currentSheet = idleSpriteSheet;
+                    currentTotalFrames = idleFrameCount;
+
+                    long time = System.currentTimeMillis();
+                    if (time - lastIdleFrameTime > 250) {
+                        idleCurrentFrame = (idleCurrentFrame + 1) % idleFrameCount;
+                        lastIdleFrameTime = time;
+                    }
+                    frameToDraw = idleCurrentFrame;
                 }
-                paint.setAlpha(255);
+
+                if (currentSheet != null) {
+                    int fWidth = currentSheet.getWidth() / currentTotalFrames;
+                    int fHeight = currentSheet.getHeight();
+
+                    Rect src = new Rect(frameToDraw * fWidth, 0, (frameToDraw + 1) * fWidth, fHeight);
+                    Rect dst = new Rect((int)playerX, (int)playerY, (int)(playerX + playerSize), (int)(playerY + playerSize));
+
+                    canvas.drawBitmap(currentSheet, src, dst, paint);
+                }
+
+                canvas.restore();
             }
 
-
-            //Drawing the platforms
+            // Drawing platforms
             paint.setColor(Color.GRAY);
             for (Rect platform : platforms) {
                 if (platform.right > worldOffset && platform.left < worldOffset + getWidth()) {
@@ -420,8 +477,7 @@ public class GameView extends SurfaceView implements Runnable {
         platforms.add(new Rect(3100, 300, 3400, 350));
 
         //Spikes
-
-        spikes.add(new Rect(1200, 653, 1300, 753));
+        spikes.add(new Rect(1200, 653, 1250, 753));
         spikes.add(new Rect(2200, 653, 3400, 753));
 
 
