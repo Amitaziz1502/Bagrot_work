@@ -1,8 +1,13 @@
 package com.example.bagrot_work.screens;
 
+import static java.security.AccessController.getContext;
+
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.ImageButton;
 
 import androidx.activity.EdgeToEdge;
@@ -13,9 +18,10 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.bagrot_work.R;
 
-public class LevelOneActivity extends AppCompatActivity {
+public class LevelOneActivity extends BaseActivity implements View.OnClickListener {
     private GameView gameView;
-    private ImageButton moveRight, moveLeft;
+    private ImageButton moveRight, moveLeft, exit;
+    private Boolean isGame;
 
 
     @SuppressLint("ClickableViewAccessibility")
@@ -33,6 +39,8 @@ public class LevelOneActivity extends AppCompatActivity {
         gameView = findViewById(R.id.gameView);
         moveRight= findViewById(R.id.move_right);
         moveLeft= findViewById(R.id.move_left);
+        exit = findViewById(R.id.btn_exit);
+        exit.setOnClickListener(this);
 
         moveRight.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -66,4 +74,13 @@ public class LevelOneActivity extends AppCompatActivity {
         super.onPause();
         gameView.pause();
     }
+
+    @Override
+    public void onClick(View v) {
+        if(v.getId() ==  R.id.btn_exit){
+            gameView.showPausePopup();
+
+        }
+    }
+
 }

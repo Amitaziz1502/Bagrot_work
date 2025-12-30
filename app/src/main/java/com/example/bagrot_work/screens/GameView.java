@@ -2,18 +2,32 @@ package com.example.bagrot_work.screens;
 
 import static android.graphics.Color.GREEN;
 
+import static androidx.core.content.ContextCompat.startActivity;
+import static java.security.AccessController.getContext;
+
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Shader;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.util.AttributeSet;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
+import android.widget.ImageButton;
 
 import com.example.bagrot_work.R;
 
@@ -31,7 +45,7 @@ public class GameView extends SurfaceView implements Runnable {
     // Player properties
     private float playerX = 200;
     private float playerY = 500;
-    private float playerSize = 200;
+    private float playerSize = 150;
     private float velocityY = 0;
     private float gravity = 2f;
     private boolean isMoving = false;
@@ -57,6 +71,7 @@ public class GameView extends SurfaceView implements Runnable {
 
     //Spikes settings
     private List<Rect> spikes = new ArrayList<>();
+    private BitmapShader spikeShader;
 
     // If player reacts with the spike
     private List<Particle> particles = new ArrayList<>();
@@ -105,7 +120,10 @@ public class GameView extends SurfaceView implements Runnable {
     private String timeText = "02:00:00";
     private boolean gameStarted = false;
     private Paint textPaint;
+    private long lastTimeUpdate = 0;
     private int textFinalTime ;
+
+
 
     // Checkpoint properties
     private float savedCheckpointX = 200;
@@ -135,6 +153,7 @@ public class GameView extends SurfaceView implements Runnable {
         paint = new Paint();
         paint.setAntiAlias(false);// Fps push
         paint.setFilterBitmap(false); // Make the pictures smoother
+        paint.setDither(false); // Saving processing time
         floor_color = Color.parseColor("#0F2A55");
         main_color =Color.parseColor("#353C6F");// Setting the color one time
 
@@ -147,7 +166,6 @@ public class GameView extends SurfaceView implements Runnable {
         textPaint.setAntiAlias(true);
         textFinalTime = Color.parseColor("#FF3131");
         textPaint.setShadowLayer(5, 2, 2, Color.BLACK);
-
         timeLeftMillis = gameTimeMillis;
 
         //checkpoint
@@ -179,6 +197,7 @@ public class GameView extends SurfaceView implements Runnable {
         if (spikeimage == null) {
             Bitmap originalspike = BitmapFactory.decodeResource(getResources(), R.drawable.up_arrow__1_);
             spikeimage = Bitmap.createScaledBitmap(originalspike, 100, 100, false);
+            spikeShader = new BitmapShader(spikeimage, Shader.TileMode.REPEAT, Shader.TileMode.CLAMP);
         }
         if (idleSpriteSheet == null) {
             idleSpriteSheet = BitmapFactory.decodeResource(getResources(), R.drawable.idle_cat_spritesheet);
@@ -194,6 +213,7 @@ public class GameView extends SurfaceView implements Runnable {
             checkpointImageAfter = BitmapFactory.decodeResource(getResources(), R.drawable.flag2);
 
         }
+
     }
 
     private void scaleBackgroundIfNeeded() {
@@ -232,69 +252,63 @@ public class GameView extends SurfaceView implements Runnable {
     }
 
     private void update() {
-        // Restoring character only if he's alive
+        long time = System.currentTimeMillis();
+
         if (!isDead) {
-            // Gravity
             velocityY += gravity;
             playerY += velocityY;
-
-            // Horizontal movement
             if (movingLeft) playerX -= moveSpeed;
             if (movingRight) playerX += moveSpeed;
+            playerRect.set((int)playerX + 20, (int)playerY + 20, (int)(playerX + playerSize) - 20, (int)(playerY + playerSize));
+            boolean onGround = false;
 
-            // Checking if player is on the floor
+            // Checking floor
             float groundY = getHeight() - 200 - playerSize + 15;
             if (playerY >= groundY) {
                 playerY = groundY;
                 velocityY = 0;
-                isJumping = false;
+                onGround = true;
             }
 
-
-            // checking Collision with the spike
-            playerRect.set((int)playerX + 20, (int)playerY + 20, (int)(playerX + playerSize) - 20, (int)(playerY + playerSize));
-            for (Rect spike : spikes) {
-
-                if (playerX + playerSize > spike.left - 500 && playerX < spike.right + 500) {
-                    if (Rect.intersects(playerRect, spike)) {
-                        isDead = true;
-                        particles.clear();
-                        for (int i = 0; i < 30; i++) {
-                            particles.add(new Particle(playerX + playerSize/2, playerY + playerSize/2));
-                        }
-                        break;
-                    }
-                }
-            }
-
-
-            //Collision with the platforms
             for (Rect platform : platforms) {
+                if (platform.right < playerX - 500 || platform.left > playerX + 500) continue;
+
                 if (Rect.intersects(playerRect, platform)) {
-                    //If the player tries to go throw the platform from the bottom
-                    if (velocityY < 0 && playerY < platform.bottom && playerY > platform.top) {
-                        playerY = platform.bottom;
-                        velocityY = 0; // Start falling instantly
-                    }
-                    // Unavailing the player to go throw the platform from the top
-                    if (velocityY > 0 && (playerY + playerSize) <= (platform.top + velocityY + 15)) {
+                    // Checking from the top
+                    if (velocityY >= 0 && (playerY + playerSize) <= (platform.top + velocityY + 15)) {
                         playerY = platform.top - playerSize;
                         velocityY = 0;
-                        isJumping = false;
+                        onGround = true;
                     }
+                    // Checking bottom
+                    else if (velocityY < 0 && playerY >= (platform.bottom + velocityY - 15)) {
+                        playerY = platform.bottom;
+                        velocityY = 0;
+                    }
+                    // Checking on the side
                     else {
-                        // If the player trying to go from the left side of the platform
                         if (playerX + playerSize > platform.left && playerX < platform.left) {
                             playerX = platform.left - playerSize;
-                        }
-                        // If the player trying to go from the right side of the platform
-                        else if (playerX < platform.right && playerX + playerSize > platform.right) {
+                        } else if (playerX < platform.right && playerX + playerSize > platform.right) {
                             playerX = platform.right;
                         }
                     }
                 }
             }
-            //Checking collision with the Checkpoints
+
+            isJumping = !onGround;
+
+            //  Checking spike
+            for (Rect spike : spikes) {
+                if (playerX + playerSize > spike.left - 200 && playerX < spike.right + 200) {
+                    if (Rect.intersects(playerRect, spike)) {
+                        triggerDeath();
+                        break;
+                    }
+                }
+            }
+
+            //Checking checkpoints
             for (int i = 0; i < checkpoints.size(); i++) {
                 Rect cp = checkpoints.get(i);
                 if (Rect.intersects(playerRect, cp)) {
@@ -304,65 +318,55 @@ public class GameView extends SurfaceView implements Runnable {
                 }
             }
 
+            if ( gameStarted ) {
+
+                timeLeftMillis -= FRAME_TIME;
+                if(timeLeftMillis<=10000){
+                    textPaint.setColor(textFinalTime);
+                }
+                if (timeLeftMillis <= 0) {
+                    timeLeftMillis = 0;
+                    isDead = true;
+                    particles.clear();
+                    for (int i = 0; i < 20; i++) {
+                        particles.add(new Particle(playerX + playerSize/2, playerY + playerSize/2));
+                    }
+                }
+            }
+
+            int minutes = (int) (timeLeftMillis / 60000);
+            int seconds = (int) (timeLeftMillis % 60000) / 1000;
+            int millis  = (int) (timeLeftMillis % 1000) / 10;
+            timeText = String.format("%02d:%02d:%02d", minutes, seconds, millis);
         }
 
-        // Updating the exploding particles
+        updateParticles();
+        updateCamera();
+    }
+
+
+    private void triggerDeath() {
+        isDead = true;
+        particles.clear();
+        for (int i = 0; i < 30; i++) {
+            particles.add(new Particle(playerX + playerSize/2, playerY + playerSize/2));
+        }
+    }
+
+    private void updateCamera() {
+        worldOffsetX = (playerX > (float) getWidth() / 2) ? playerX - (float) getWidth() / 2 : 0;
+        worldOffsetY = (playerY < (float) getHeight() / 2) ? (float) getHeight() / 2 - playerY : 0;
+        if (playerX < 0) playerX = 0;
+        if (playerX > 10000 - playerSize) playerX = 10000 - playerSize;
+    }
+
+    private void updateParticles() {
         for (int i = particles.size() - 1; i >= 0; i--) {
             Particle p = particles.get(i);
             p.update();
-
-            // When the particle is gone I remove him
-            if (p.alpha <= 0) {
-                particles.remove(i);
-            }
+            if (p.alpha <= 0) particles.remove(i);
         }
-
-        // Auto restore when the particles are gone
-        if (isDead && particles.isEmpty()) {
-            resetPlayer();
-        }
-
-        // World-offsetX control
-        if (playerX > (float) getWidth() / 2) {
-            worldOffsetX = playerX - (float) getWidth() / 2;
-        } else {
-            worldOffsetX = 0;
-        }
-
-        //World-offsetY control
-        if (playerY < (float) getHeight() / 2) {
-            worldOffsetY = (float) getHeight() / 2 - playerY;
-        } else {
-            worldOffsetY = 0;
-        }
-
-        // Setting the players boundaries
-        if (playerX < 0) playerX = 0;
-        if (playerX > 10000 - playerSize) playerX = 10000 - playerSize;
-
-
-        //Setting time, when the player is out of time he would die
-        if (!isDead && gameStarted ) {
-
-            timeLeftMillis -= FRAME_TIME;
-            if(timeLeftMillis<=10000){
-                textPaint.setColor(textFinalTime);
-            }
-            if (timeLeftMillis <= 0) {
-                timeLeftMillis = 0;
-                isDead = true;
-                particles.clear();
-                for (int i = 0; i < 20; i++) {
-                    particles.add(new Particle(playerX + playerSize/2, playerY + playerSize/2));
-                }
-            }
-        }
-
-        int minutes = (int) (timeLeftMillis / 60000);
-        int seconds = (int) (timeLeftMillis % 60000) / 1000;
-        int millis  = (int) (timeLeftMillis % 1000) / 10;
-        timeText = String.format("%02d:%02d:%02d", minutes, seconds, millis);
-
+        if (isDead && particles.isEmpty()) resetPlayer();
     }
 
     // Functions that help restore the player
@@ -375,11 +379,12 @@ public class GameView extends SurfaceView implements Runnable {
         particles.clear(); // Just in case removing the particles
 
         //Resetting clock
-        timerStartMillis = System.currentTimeMillis();
         gameStarted = false;
-        textPaint.setColor(Color.WHITE);
-        timeLeftMillis = gameTimeMillis;
+        if (timeLeftMillis > 10000) {
+            textPaint.setColor(Color.WHITE);
+        }
     }
+
 
     private void draw() {
         if (!surfaceHolder.getSurface().isValid()) return;
@@ -465,11 +470,12 @@ public class GameView extends SurfaceView implements Runnable {
 
                 } else {
                     //Idle mode
+
                     currentSheet = idleSpriteSheet;
                     currentTotalFrames = idleFrameCount;
                     jumpCurrentFrame = 0;
 
-                    if (time - lastIdleFrameTime > 250) {
+                    if (time - lastIdleFrameTime > 250 && gameStarted) {
                         idleCurrentFrame = (idleCurrentFrame + 1) % idleFrameCount;
                         lastIdleFrameTime = time;
                     }
@@ -517,7 +523,6 @@ public class GameView extends SurfaceView implements Runnable {
             surfaceHolder.unlockCanvasAndPost(canvas);
         }
     }
-
     public void resume() {
         isPlaying = true;
         gameThread = new Thread(this);
@@ -606,9 +611,40 @@ public class GameView extends SurfaceView implements Runnable {
             alpha -= 5; // The particle is slowly disapering
         }
     }
+
+    public void showPausePopup() {
+        gameStarted=false;
+        ((Activity) getContext()).runOnUiThread(() -> {
+            View customView = LayoutInflater.from(getContext()).inflate(R.layout.pop_up, null);
+
+            AlertDialog dialog = new AlertDialog.Builder(getContext())
+                    .setView(customView)
+                    .setCancelable(false)
+                    .create();
+
+            if (dialog.getWindow() != null) {
+                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            }
+            ImageButton btnPlay = customView.findViewById(R.id.continue_popup);
+            btnPlay.setOnClickListener(v -> {
+                isPlaying = true;
+                dialog.dismiss();
+            });
+
+
+            ImageButton btnExit = customView.findViewById(R.id.exit_popup);
+            btnExit.setOnClickListener(v -> {
+                Intent exit_intent = new Intent(getContext(), LevelsActivity.class);
+                getContext().startActivity(exit_intent);
+            });
+
+            dialog.show();
+        });
+    }
+
     private void createPlatforms() {
 
-
+        int floorLevel = getHeight() - 200;
         platforms.clear();
         spikes.clear();
 
@@ -621,6 +657,20 @@ public class GameView extends SurfaceView implements Runnable {
         platforms.add(new Rect(3100, 300, 4500, 350));
         //Fourth platform
         platforms.add(new Rect(4500, 300, 4600, 750));
+        //Fifth platform
+        platforms.add(new Rect(6300, floorLevel  - 100, 6400, floorLevel));
+        //Sixth platform
+        platforms.add(new Rect(6700,floorLevel  - 300, 6800, floorLevel));
+        //Seventh platform
+        platforms.add(new Rect(7100,floorLevel  - 500, 7200, floorLevel));
+        //Eighth platform
+        platforms.add(new Rect(7500,floorLevel  - 700, 7600, floorLevel));
+        //ninth platform
+        platforms.add(new Rect(8100,floorLevel  - 750, 8200, floorLevel-700));
+        platforms.add(new Rect(8600,floorLevel  - 750, 8700, floorLevel-700));
+        platforms.add(new Rect(9100,floorLevel  - 750, 9200, floorLevel-700));
+
+
 
 
         //Spikes
@@ -629,18 +679,28 @@ public class GameView extends SurfaceView implements Runnable {
         spikes.add(new Rect(3500, 200, 3600, 350));
         spikes.add(new Rect(3900, 200, 4000, 350));
         spikes.add(new Rect(4400, 200, 4600, 350));
-        spikes.add(new Rect(5300, 653, 5400, 753));
+        spikes.add(new Rect(6800, floorLevel  - 100, 7100, floorLevel));
+        spikes.add(new Rect(7200, floorLevel  - 100, 7500, floorLevel));
+        spikes.add(new Rect(7600, 653, 8700, 753));
+
+
+
+
+
+
+
 
 
         //Checkpoints
         checkpoints.clear();
         checkpointActivated.clear();
         //First Checkpoint
-        checkpoints.add(new Rect(4800, 653, 4900, 753));
+        checkpoints.add(new Rect(5700, floorLevel  - 500, 5800, floorLevel));
         checkpointActivated.add(false);
 
 
 
     }
+
 
 }
