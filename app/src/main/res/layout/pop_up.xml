@@ -54,6 +54,13 @@
                 android:background="@android:color/transparent"
                 app:srcCompat="@drawable/exit__1_" />
 
+            <Button
+                android:id="@+id/add_level"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="+" />
+
         </LinearLayout>
 
 

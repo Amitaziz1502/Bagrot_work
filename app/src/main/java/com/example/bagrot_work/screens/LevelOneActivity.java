@@ -21,7 +21,6 @@ import com.example.bagrot_work.R;
 public class LevelOneActivity extends BaseActivity implements View.OnClickListener {
     private GameView gameView;
     private ImageButton moveRight, moveLeft, exit;
-    private Boolean isGame;
 
 
     @SuppressLint("ClickableViewAccessibility")

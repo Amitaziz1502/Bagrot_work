@@ -15,13 +15,22 @@ import android.graphics.Shader;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import com.example.bagrot_work.R;
+import com.example.bagrot_work.models.GameLevel;
+import com.example.bagrot_work.services.DatabaseService;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +57,7 @@ public class GameView extends SurfaceView implements Runnable {
     private float scrollSpeed = 5;
     private float worldOffsetX = 0;
     private float worldOffsetY = 0;
-    private float moveSpeed = 15f;
+    private float moveSpeed = 13f;
 
     // Movement controls
     private boolean movingLeft = false;
@@ -141,9 +150,8 @@ public class GameView extends SurfaceView implements Runnable {
     private int currentLevel = 1;
     public void setLevel(int level) {
         this.currentLevel = level;
-        if (getWidth() > 0) {
-            createPlatforms();
-        }
+        loadLevelFromCloud(level);
+
     }
 
 
@@ -705,6 +713,14 @@ public class GameView extends SurfaceView implements Runnable {
                 getContext().startActivity(exit_intent);
             });
 
+            Button btnAdd = customView.findViewById(R.id.add_level);
+            btnAdd.setOnClickListener(v -> {
+                int floorLevel = getHeight() - 200;
+                DatabaseService.getInstance().CreateNewLevel(1, floorLevel);
+            });
+
+
+
             dialog.show();
         });
     }
@@ -721,91 +737,76 @@ public class GameView extends SurfaceView implements Runnable {
 
     private void createPlatforms() {
         int floorLevel = getHeight() - 200;
-        platforms.clear();
-        spikes.clear();
-        floatingTexts.clear();
-        checkpoints.clear();
-        checkpointActivated.clear();
-        switch (currentLevel){
-            case 1:
-                //Platforms
-                // 1 platform
-                platforms.add(new Rect(1900, 600, 2200, 650));
-                // 2 platform
-                platforms.add(new Rect(2500, 450, 2800, 500));
-                // 3 platform
-                platforms.add(new Rect(3100, 300, 4500, 350));
-                //4 platform
-                platforms.add(new Rect(4500, 300, 4600, 750));
-                //5 platform
-                platforms.add(new Rect(6300, floorLevel  - 100, 6400, floorLevel));
-                //6 platform
-                platforms.add(new Rect(6700,floorLevel  - 300, 6800, floorLevel));
-                //7 platform
-                platforms.add(new Rect(7100,floorLevel  - 500, 7200, floorLevel));
-                //8 platform
-                platforms.add(new Rect(7500,floorLevel  - 700, 7600, floorLevel));
-                //9 platform
-                platforms.add(new Rect(8000,floorLevel  - 750, 8100, floorLevel-700));
-                //10 platform
-                platforms.add(new Rect(8500,floorLevel  - 750, 8600, floorLevel-700));
-                //11 platform
-                platforms.add(new Rect(9000,floorLevel  - 750, 9100, floorLevel-700));
-                //12 platform
-                platforms.add(new Rect(9500,floorLevel  - 650, 9800, floorLevel-600));
-                //13 platform
-                platforms.add(new Rect(10100,floorLevel  - 550, 10400, floorLevel-500));
-                //14 platform
-                platforms.add(new Rect(10700,floorLevel  - 450, 11000, floorLevel-400));
-                //15 platform
-                platforms.add(new Rect(11300,floorLevel  - 350, 11600, floorLevel-300));
-                //16 platform
-                platforms.add(new Rect(11900,floorLevel  - 250, 12200, floorLevel-200));
-                //17 platform
-                platforms.add(new Rect(12500,floorLevel  - 150, 12800, floorLevel-100));
-                //18 platform
-                platforms.add(new Rect(15000,floorLevel  - 150, 15400, floorLevel-100));
-                //19 platform
-                platforms.add(new Rect(15900,floorLevel  - 150, 16300, floorLevel-100));
+        GameLevel data = GameLevel.getLevel(currentLevel, floorLevel);
 
-                platforms.add(new Rect(16800,floorLevel  - 150, 17200, floorLevel-100));
+        if (data != null) {
+            this.platforms.clear();
+            for (GameLevel.RectData rd : data.platforms) {
+                this.platforms.add(rd.toRect());
+            }
 
-                platforms.add(new Rect(17700,floorLevel  - 150, 18000, floorLevel-100));
+            this.spikes.clear();
+            for (GameLevel.RectData sd : data.spikes) {
+                this.spikes.add(sd.toRect());
+            }
 
+            this.checkpoints.clear();
+            for (GameLevel.RectData cd : data.checkpoints) {
+                this.checkpoints.add(cd.toRect());
+            }
 
-                //Spikes
-                spikes.add(new Rect(1200, floorLevel  - 100, 1300, floorLevel));
-                spikes.add(new Rect(2200, floorLevel-100, 3400, floorLevel));
-                spikes.add(new Rect(3500, 200, 3600, 350));
-                spikes.add(new Rect(3900, 200, 4000, 350));
-                spikes.add(new Rect(4400, 200, 4600, 350));
-                spikes.add(new Rect(6800, floorLevel  - 100, 7100, floorLevel));
-                spikes.add(new Rect(7200, floorLevel  - 100, 7500, floorLevel));
-                spikes.add(new Rect(7600, floorLevel  - 100, 12200, floorLevel));
-                spikes.add(new Rect(13300, floorLevel  - 100, 13500, floorLevel));
-                spikes.add(new Rect(13800, floorLevel  - 100, 14000, floorLevel));
-                spikes.add(new Rect(14300, floorLevel  - 100, 14500, floorLevel));
-                spikes.add(new Rect(15500, floorLevel  - 100, 15800, floorLevel));
-                spikes.add(new Rect(16400, floorLevel  - 100, 16700, floorLevel));
-                spikes.add(new Rect(17300, floorLevel  - 100, 17600, floorLevel));
+            this.worldWidth = data.worldWidth;
+            this.timeLeftMillis = data.levelTimeMillis;
 
+            this.floatingTexts.clear();
+            for (GameLevel.FloatingTextData ft : data.floatingTexts) {
+                this.floatingTexts.add(new FloatingText(ft.text, ft.x, ft.y));
+            }
 
-                //Checkpoints
-                checkpoints.clear();
-                checkpointActivated.clear();
-                //First Checkpoint
-                checkpoints.add(new Rect(10200, floorLevel  - 700, 10300, floorLevel-550));
-                checkpointActivated.add(false);
-
-                //Texts
-                floatingTexts.clear();
-                floatingTexts.add(new FloatingText("The owner is not here! ", 18600, floorLevel - 400));
-                floatingTexts.add(new FloatingText("Maybe you can find him in the next neighborhood? ", 19500, floorLevel - 300));
-
+            checkpointActivated.clear();
+            for (Rect r : checkpoints) checkpointActivated.add(false);
         }
+    }
+    private void loadLevelFromCloud(int levelNumber) {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("levels").child("level_" + levelNumber);
 
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                GameLevel data = snapshot.getValue(GameLevel.class);
+                if (data != null) {
+                    platforms.clear();
+                    for (GameLevel.RectData rd : data.platforms) platforms.add(rd.toRect());
 
+                    spikes.clear();
+                    for (GameLevel.RectData sd : data.spikes) spikes.add(sd.toRect());
 
+                    checkpoints.clear();
+                    if (data.checkpoints != null) {
+                        for (GameLevel.RectData cd : data.checkpoints) checkpoints.add(cd.toRect());
+                    }
+
+                    floatingTexts.clear();
+                    if (data.floatingTexts != null) {
+                        for (GameLevel.FloatingTextData ft : data.floatingTexts) {
+                            floatingTexts.add(new FloatingText(ft.text, ft.x, ft.y));
+                        }
+                    }
+
+                    checkpointActivated.clear();
+                    for (Rect r : checkpoints) checkpointActivated.add(false);
+
+                    worldWidth = data.worldWidth;
+                    timeLeftMillis = data.levelTimeMillis;
+
+                    postInvalidate();
+                }
+            }
+            @Override
+            public void onCancelled(DatabaseError error) {
+                Log.e("DB", "Failed to load level", error.toException());
+            }
+        });
     }
 
 

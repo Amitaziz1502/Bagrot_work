@@ -5,7 +5,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.example.bagrot_work.models.PlayerAppearance;
+import com.example.bagrot_work.models.GameLevel;
 import com.example.bagrot_work.models.User;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -28,9 +28,9 @@ public class DatabaseService {
 
     /// paths for different data types in the database
     /// @see DatabaseService#readData(String)
-    private static final String USERS_PATH = "users",
-            FOODS_PATH = "foods",
-            CARTS_PATH = "carts";
+    private static final String
+            USERS_PATH = "users",
+            GAME_LEVEL_PATH = "levels";
 
     /// callback interface for database operations
     /// @param <T> the type of the object to return
@@ -325,6 +325,17 @@ public class DatabaseService {
             }
         });
     }
+
+    public void CreateNewLevel(int levelNumber, int floorLevel) {
+        GameLevel levelData = GameLevel.getLevel(levelNumber, floorLevel);
+        writeData(GAME_LEVEL_PATH + "/" + levelNumber, levelData, null);
+    }
+
+    public void getLevel(final int levelNumber, @NotNull final DatabaseCallback<GameLevel> callback) {
+        getData(GAME_LEVEL_PATH + "/" + levelNumber, GameLevel.class, callback);
+    }
+
+
 
 //    public void setAdmin(User user, Boolean)
 
