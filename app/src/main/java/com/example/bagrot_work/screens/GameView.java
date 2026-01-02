@@ -1,21 +1,14 @@
 package com.example.bagrot_work.screens;
 
-import static android.graphics.Color.GREEN;
-
-import static androidx.core.content.ContextCompat.startActivity;
-import static java.security.AccessController.getContext;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Shader;
@@ -28,7 +21,6 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.ImageButton;
-
 import com.example.bagrot_work.R;
 
 import java.util.ArrayList;
@@ -50,6 +42,7 @@ public class GameView extends SurfaceView implements Runnable {
     private float gravity = 2f;
     private boolean isMoving = false;
     private boolean isJumping = false;
+    private float worldWidth = 22000;
 
     // Movement
     private float scrollSpeed = 5;
@@ -135,6 +128,23 @@ public class GameView extends SurfaceView implements Runnable {
     private List<Boolean> checkpointActivated = new ArrayList<>();
     private float flagY;
 
+    //Text properties
+    private List<FloatingText> floatingTexts = new ArrayList<>();
+    private Paint floatingTextPaint;
+
+    //Ending scene
+    private boolean isLevelEnding = false;
+    private int blackAlpha = 0;
+
+
+    //checking what level your in
+    private int currentLevel = 1;
+    public void setLevel(int level) {
+        this.currentLevel = level;
+        if (getWidth() > 0) {
+            createPlatforms();
+        }
+    }
 
 
     public GameView(Context context) {
@@ -168,8 +178,13 @@ public class GameView extends SurfaceView implements Runnable {
         textPaint.setShadowLayer(5, 2, 2, Color.BLACK);
         timeLeftMillis = gameTimeMillis;
 
-        //checkpoint
-
+        //Text
+        floatingTextPaint = new Paint();
+        floatingTextPaint.setColor(Color.WHITE);
+        floatingTextPaint.setTextSize(60);
+        floatingTextPaint.setFakeBoldText(true);
+        floatingTextPaint.setAntiAlias(true);
+        floatingTextPaint.setTextAlign(Paint.Align.CENTER);
     }
 
     @Override
@@ -255,93 +270,130 @@ public class GameView extends SurfaceView implements Runnable {
         long time = System.currentTimeMillis();
 
         if (!isDead) {
-            velocityY += gravity;
-            playerY += velocityY;
-            if (movingLeft) playerX -= moveSpeed;
-            if (movingRight) playerX += moveSpeed;
-            playerRect.set((int)playerX + 20, (int)playerY + 20, (int)(playerX + playerSize) - 20, (int)(playerY + playerSize));
-            boolean onGround = false;
-
-            // Checking floor
-            float groundY = getHeight() - 200 - playerSize + 15;
-            if (playerY >= groundY) {
-                playerY = groundY;
-                velocityY = 0;
-                onGround = true;
+            //Checking if player has reached the end of the level
+            if (playerX >= 20000) {
+                isLevelEnding = true;
+                gameStarted = false;
             }
 
-            for (Rect platform : platforms) {
-                if (platform.right < playerX - 500 || platform.left > playerX + 500) continue;
+            if (isLevelEnding) {
+                //Automatic run
+                playerX += moveSpeed;
+                movingRight = true;
+                movingLeft = false;
 
-                if (Rect.intersects(playerRect, platform)) {
-                    // Checking from the top
-                    if (velocityY >= 0 && (playerY + playerSize) <= (platform.top + velocityY + 15)) {
-                        playerY = platform.top - playerSize;
-                        velocityY = 0;
-                        onGround = true;
+                if (blackAlpha < 255) {
+                    blackAlpha += 2;
+                } else {
+                    Intent intent = new Intent(getContext(), LevelsActivity.class);
+                    getContext().startActivity(intent);
+                    if (getContext() instanceof Activity) {
+                        ((Activity) getContext()).finish();
                     }
-                    // Checking bottom
-                    else if (velocityY < 0 && playerY >= (platform.bottom + velocityY - 15)) {
-                        playerY = platform.bottom;
-                        velocityY = 0;
-                    }
-                    // Checking on the side
-                    else {
-                        if (playerX + playerSize > platform.left && playerX < platform.left) {
-                            playerX = platform.left - playerSize;
-                        } else if (playerX < platform.right && playerX + playerSize > platform.right) {
-                            playerX = platform.right;
+                }
+            }
+            else {
+
+                velocityY += gravity;
+                playerY += velocityY;
+
+                if (movingLeft) playerX -= moveSpeed;
+                if (movingRight) playerX += moveSpeed;
+
+                playerRect.set((int)playerX + 20, (int)playerY + 20, (int)(playerX + playerSize) - 20, (int)(playerY + playerSize));
+
+                boolean onGround = false;
+
+                // Floor check
+                float groundY = getHeight() - 200 - playerSize + 15;
+                if (playerY >= groundY) {
+                    playerY = groundY;
+                    velocityY = 0;
+                    onGround = true;
+                }
+
+                // Platform check
+                for (Rect platform : platforms) {
+                    if (platform.right < playerX - 500 || platform.left > playerX + 500) continue;
+
+                    if (Rect.intersects(playerRect, platform)) {
+                        if (velocityY >= 0 && (playerY + playerSize) <= (platform.top + velocityY + 15)) {
+                            playerY = platform.top - playerSize;
+                            velocityY = 0;
+                            onGround = true;
+                        }
+                        else if (velocityY < 0 && playerY >= (platform.bottom + velocityY - 15)) {
+                            playerY = platform.bottom;
+                            velocityY = 0;
+                        }
+                        else {
+                            if (playerX + playerSize > platform.left && playerX < platform.left) {
+                                playerX = platform.left - playerSize;
+                            } else if (playerX < platform.right && playerX + playerSize > platform.right) {
+                                playerX = platform.right;
+                            }
                         }
                     }
                 }
-            }
 
-            isJumping = !onGround;
+                isJumping = !onGround;
 
-            //  Checking spike
-            for (Rect spike : spikes) {
-                if (playerX + playerSize > spike.left - 200 && playerX < spike.right + 200) {
-                    if (Rect.intersects(playerRect, spike)) {
-                        triggerDeath();
-                        break;
+                // Spike check
+                for (Rect spike : spikes) {
+                    if (playerX + playerSize > spike.left - 200 && playerX < spike.right + 200) {
+                        if (Rect.intersects(playerRect, spike)) {
+                            triggerDeath();
+                            break;
+                        }
                     }
                 }
-            }
 
-            //Checking checkpoints
-            for (int i = 0; i < checkpoints.size(); i++) {
-                Rect cp = checkpoints.get(i);
-                if (Rect.intersects(playerRect, cp)) {
-                    savedCheckpointX = cp.left;
-                    savedCheckpointY = cp.top - playerSize + 10;
-                    checkpointActivated.set(i, true);
-                }
-            }
-
-            if ( gameStarted ) {
-
-                timeLeftMillis -= FRAME_TIME;
-                if(timeLeftMillis<=10000){
-                    textPaint.setColor(textFinalTime);
-                }
-                if (timeLeftMillis <= 0) {
-                    timeLeftMillis = 0;
-                    isDead = true;
-                    particles.clear();
-                    for (int i = 0; i < 20; i++) {
-                        particles.add(new Particle(playerX + playerSize/2, playerY + playerSize/2));
+                // Checkpoint check
+                for (int i = 0; i < checkpoints.size(); i++) {
+                    Rect cp = checkpoints.get(i);
+                    if (Rect.intersects(playerRect, cp)) {
+                        savedCheckpointX = cp.left;
+                        savedCheckpointY = cp.top - playerSize + 10;
+                        checkpointActivated.set(i, true);
                     }
                 }
-            }
 
-            int minutes = (int) (timeLeftMillis / 60000);
-            int seconds = (int) (timeLeftMillis % 60000) / 1000;
-            int millis  = (int) (timeLeftMillis % 1000) / 10;
-            timeText = String.format("%02d:%02d:%02d", minutes, seconds, millis);
+                // Time properties
+                if (gameStarted) {
+                    timeLeftMillis -= FRAME_TIME;
+                    if (timeLeftMillis <= 10000) {
+                        textPaint.setColor(textFinalTime);
+                    }
+                    if (timeLeftMillis <= 0) {
+                        timeLeftMillis = 0;
+                        isDead = true;
+                        particles.clear();
+                        for (int i = 0; i < 20; i++) {
+                            particles.add(new Particle(playerX + playerSize/2, playerY + playerSize/2));
+                        }
+                        playerX = 200;
+                        playerY = 500;
+                        savedCheckpointX = playerX;
+                        savedCheckpointY = playerY;
+                        for (int i = 0; i < checkpointActivated.size(); i++) {
+                            checkpointActivated.set(i, false);
+                        }
+                        timeLeftMillis = 120000;
+                        isDead = false;
+                        textPaint.setColor(Color.WHITE);
+                    }
+                }
+
+                int minutes = (int) (timeLeftMillis / 60000);
+                int seconds = (int) (timeLeftMillis % 60000) / 1000;
+                int millis  = (int) (timeLeftMillis % 1000) / 10;
+                timeText = String.format("%02d:%02d:%02d", minutes, seconds, millis);
+
+                updateCamera();
+            }
         }
 
         updateParticles();
-        updateCamera();
     }
 
 
@@ -357,7 +409,7 @@ public class GameView extends SurfaceView implements Runnable {
         worldOffsetX = (playerX > (float) getWidth() / 2) ? playerX - (float) getWidth() / 2 : 0;
         worldOffsetY = (playerY < (float) getHeight() / 2) ? (float) getHeight() / 2 - playerY : 0;
         if (playerX < 0) playerX = 0;
-        if (playerX > 10000 - playerSize) playerX = 10000 - playerSize;
+        if (playerX > worldWidth - playerSize) playerX = worldWidth - playerSize;
     }
 
     private void updateParticles() {
@@ -514,10 +566,25 @@ public class GameView extends SurfaceView implements Runnable {
                 }
             }
 
+            //Drawing text
+            for (FloatingText ft : floatingTexts) {
+                if (ft.x > worldOffsetX - 500 && ft.x < worldOffsetX + getWidth() + 500) {
+                    canvas.drawText(ft.text, ft.x, ft.y, floatingTextPaint);
+                }
+            }
+
             paint.setColor(main_color);
             canvas.restore();
             //Drawing clock
             canvas.drawText(timeText, 50, 100, textPaint);
+
+            //Drawing the black out
+            if (blackAlpha > 0) {
+                paint.setColor(Color.BLACK);
+                paint.setAlpha(blackAlpha);
+                canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
+                paint.setAlpha(255);
+            }
 
         } finally {
             surfaceHolder.unlockCanvasAndPost(canvas);
@@ -641,62 +708,101 @@ public class GameView extends SurfaceView implements Runnable {
             dialog.show();
         });
     }
+    class FloatingText {
+        String text;
+        float x, y;
+
+        public FloatingText(String text, float x, float y) {
+            this.text = text;
+            this.x = x;
+            this.y = y;
+        }
+    }
 
     private void createPlatforms() {
-
         int floorLevel = getHeight() - 200;
         platforms.clear();
         spikes.clear();
-
-        //Platforms
-        // First platform
-        platforms.add(new Rect(1900, 600, 2200, 650));
-        // Second platform
-        platforms.add(new Rect(2500, 450, 2800, 500));
-        // Third platform
-        platforms.add(new Rect(3100, 300, 4500, 350));
-        //Fourth platform
-        platforms.add(new Rect(4500, 300, 4600, 750));
-        //Fifth platform
-        platforms.add(new Rect(6300, floorLevel  - 100, 6400, floorLevel));
-        //Sixth platform
-        platforms.add(new Rect(6700,floorLevel  - 300, 6800, floorLevel));
-        //Seventh platform
-        platforms.add(new Rect(7100,floorLevel  - 500, 7200, floorLevel));
-        //Eighth platform
-        platforms.add(new Rect(7500,floorLevel  - 700, 7600, floorLevel));
-        //ninth platform
-        platforms.add(new Rect(8100,floorLevel  - 750, 8200, floorLevel-700));
-        platforms.add(new Rect(8600,floorLevel  - 750, 8700, floorLevel-700));
-        platforms.add(new Rect(9100,floorLevel  - 750, 9200, floorLevel-700));
-
-
-
-
-        //Spikes
-        spikes.add(new Rect(1200, 653, 1300, 753));
-        spikes.add(new Rect(2200, 653, 3400, 753));
-        spikes.add(new Rect(3500, 200, 3600, 350));
-        spikes.add(new Rect(3900, 200, 4000, 350));
-        spikes.add(new Rect(4400, 200, 4600, 350));
-        spikes.add(new Rect(6800, floorLevel  - 100, 7100, floorLevel));
-        spikes.add(new Rect(7200, floorLevel  - 100, 7500, floorLevel));
-        spikes.add(new Rect(7600, 653, 8700, 753));
-
-
-
-
-
-
-
-
-
-        //Checkpoints
+        floatingTexts.clear();
         checkpoints.clear();
         checkpointActivated.clear();
-        //First Checkpoint
-        checkpoints.add(new Rect(5700, floorLevel  - 500, 5800, floorLevel));
-        checkpointActivated.add(false);
+        switch (currentLevel){
+            case 1:
+                //Platforms
+                // 1 platform
+                platforms.add(new Rect(1900, 600, 2200, 650));
+                // 2 platform
+                platforms.add(new Rect(2500, 450, 2800, 500));
+                // 3 platform
+                platforms.add(new Rect(3100, 300, 4500, 350));
+                //4 platform
+                platforms.add(new Rect(4500, 300, 4600, 750));
+                //5 platform
+                platforms.add(new Rect(6300, floorLevel  - 100, 6400, floorLevel));
+                //6 platform
+                platforms.add(new Rect(6700,floorLevel  - 300, 6800, floorLevel));
+                //7 platform
+                platforms.add(new Rect(7100,floorLevel  - 500, 7200, floorLevel));
+                //8 platform
+                platforms.add(new Rect(7500,floorLevel  - 700, 7600, floorLevel));
+                //9 platform
+                platforms.add(new Rect(8000,floorLevel  - 750, 8100, floorLevel-700));
+                //10 platform
+                platforms.add(new Rect(8500,floorLevel  - 750, 8600, floorLevel-700));
+                //11 platform
+                platforms.add(new Rect(9000,floorLevel  - 750, 9100, floorLevel-700));
+                //12 platform
+                platforms.add(new Rect(9500,floorLevel  - 650, 9800, floorLevel-600));
+                //13 platform
+                platforms.add(new Rect(10100,floorLevel  - 550, 10400, floorLevel-500));
+                //14 platform
+                platforms.add(new Rect(10700,floorLevel  - 450, 11000, floorLevel-400));
+                //15 platform
+                platforms.add(new Rect(11300,floorLevel  - 350, 11600, floorLevel-300));
+                //16 platform
+                platforms.add(new Rect(11900,floorLevel  - 250, 12200, floorLevel-200));
+                //17 platform
+                platforms.add(new Rect(12500,floorLevel  - 150, 12800, floorLevel-100));
+                //18 platform
+                platforms.add(new Rect(15000,floorLevel  - 150, 15400, floorLevel-100));
+                //19 platform
+                platforms.add(new Rect(15900,floorLevel  - 150, 16300, floorLevel-100));
+
+                platforms.add(new Rect(16800,floorLevel  - 150, 17200, floorLevel-100));
+
+                platforms.add(new Rect(17700,floorLevel  - 150, 18000, floorLevel-100));
+
+
+                //Spikes
+                spikes.add(new Rect(1200, floorLevel  - 100, 1300, floorLevel));
+                spikes.add(new Rect(2200, floorLevel-100, 3400, floorLevel));
+                spikes.add(new Rect(3500, 200, 3600, 350));
+                spikes.add(new Rect(3900, 200, 4000, 350));
+                spikes.add(new Rect(4400, 200, 4600, 350));
+                spikes.add(new Rect(6800, floorLevel  - 100, 7100, floorLevel));
+                spikes.add(new Rect(7200, floorLevel  - 100, 7500, floorLevel));
+                spikes.add(new Rect(7600, floorLevel  - 100, 12200, floorLevel));
+                spikes.add(new Rect(13300, floorLevel  - 100, 13500, floorLevel));
+                spikes.add(new Rect(13800, floorLevel  - 100, 14000, floorLevel));
+                spikes.add(new Rect(14300, floorLevel  - 100, 14500, floorLevel));
+                spikes.add(new Rect(15500, floorLevel  - 100, 15800, floorLevel));
+                spikes.add(new Rect(16400, floorLevel  - 100, 16700, floorLevel));
+                spikes.add(new Rect(17300, floorLevel  - 100, 17600, floorLevel));
+
+
+                //Checkpoints
+                checkpoints.clear();
+                checkpointActivated.clear();
+                //First Checkpoint
+                checkpoints.add(new Rect(10200, floorLevel  - 700, 10300, floorLevel-550));
+                checkpointActivated.add(false);
+
+                //Texts
+                floatingTexts.clear();
+                floatingTexts.add(new FloatingText("The owner is not here! ", 18600, floorLevel - 400));
+                floatingTexts.add(new FloatingText("Maybe you can find him in the next neighborhood? ", 19500, floorLevel - 300));
+
+        }
 
 
 

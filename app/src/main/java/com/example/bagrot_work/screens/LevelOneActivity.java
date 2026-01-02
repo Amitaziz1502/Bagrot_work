@@ -37,6 +37,7 @@ public class LevelOneActivity extends BaseActivity implements View.OnClickListen
         });
 
         gameView = findViewById(R.id.gameView);
+        gameView.setLevel(1);
         moveRight= findViewById(R.id.move_right);
         moveLeft= findViewById(R.id.move_left);
         exit = findViewById(R.id.btn_exit);
