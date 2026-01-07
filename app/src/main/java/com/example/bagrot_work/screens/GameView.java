@@ -33,7 +33,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class GameView extends SurfaceView implements Runnable {
@@ -145,6 +147,10 @@ public class GameView extends SurfaceView implements Runnable {
     private boolean isLevelEnding = false;
     private int blackAlpha = 0;
 
+    //images in game
+    private Map<String, Bitmap> imageCache = new HashMap<>();
+    private GameLevel currentLevelData;
+
 
     //checking what level your in
     private int currentLevel = 1;
@@ -194,6 +200,7 @@ public class GameView extends SurfaceView implements Runnable {
         floatingTextPaint.setAntiAlias(true);
         floatingTextPaint.setTextAlign(Paint.Align.CENTER);
     }
+
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
@@ -446,6 +453,7 @@ public class GameView extends SurfaceView implements Runnable {
     }
 
 
+
     private void draw() {
         if (!surfaceHolder.getSurface().isValid()) return;
         Canvas canvas = surfaceHolder.lockCanvas();
@@ -463,6 +471,7 @@ public class GameView extends SurfaceView implements Runnable {
             // Setting world
             canvas.save();
             canvas.translate(-worldOffsetX, worldOffsetY);
+
 
             // Drawing floor + obstecals
             paint.setAlpha(255);
@@ -713,11 +722,18 @@ public class GameView extends SurfaceView implements Runnable {
                 getContext().startActivity(exit_intent);
             });
 
-            Button btnAdd = customView.findViewById(R.id.add_level);
-            btnAdd.setOnClickListener(v -> {
-                int floorLevel = getHeight() - 200;
-                DatabaseService.getInstance().CreateNewLevel(1, floorLevel);
+            ImageButton btnRetry = customView.findViewById(R.id.retry);
+            btnRetry.setOnClickListener(v -> {
+                  playerX = 200;
+                  playerY = 500;
+                  savedCheckpointX=playerX;
+                  savedCheckpointY=playerY;
+                  timeLeftMillis = 120000;
+                  dialog.dismiss();
+
+
             });
+
 
 
 
@@ -808,6 +824,4 @@ public class GameView extends SurfaceView implements Runnable {
             }
         });
     }
-
-
 }

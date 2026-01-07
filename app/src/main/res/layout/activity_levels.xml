@@ -22,7 +22,7 @@
         app:srcCompat="@drawable/levels_icon" />
 
     <ImageButton
-        android:id="@+id/btnLevel2"
+        android:id="@+id/btnLevel7"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="#0B1150"
@@ -91,7 +91,7 @@
         app:srcCompat="@drawable/levels_icon" />
 
     <ImageButton
-        android:id="@+id/btnLevel7"
+        android:id="@+id/btnLevel2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="#0B1150"

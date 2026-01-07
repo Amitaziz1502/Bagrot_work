@@ -1,14 +1,11 @@
 package com.example.bagrot_work.screens;
 
-import android.animation.ObjectAnimator;
-import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -40,6 +37,8 @@ public class LevelsActivity extends BaseActivity implements View.OnClickListener
         ImageButton btnReturnHome = findViewById(R.id.btnGoHome);
         btnReturnHome.setOnClickListener(this);
         btnFloat.setOnClickListener(this);
+        btnFloat2.setOnClickListener(this);
+
 
     }
 
@@ -48,6 +47,12 @@ public class LevelsActivity extends BaseActivity implements View.OnClickListener
         if(v.getId() == R.id.btnLevel1){
             Intent goToLevel1 = new Intent(LevelsActivity.this, LevelOneActivity.class);
             startActivity(goToLevel1);
+        }
+
+        if(v.getId() == R.id.btnLevel2){
+            Intent goToLevel2 = new Intent(LevelsActivity.this, LevelTwoActivity.class);
+            startActivity(goToLevel2);
+
         }
         if(v.getId() == R.id.btnGoHome){
             Intent ReturnHome = new Intent(LevelsActivity.this, Home_page.class);

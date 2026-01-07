@@ -12,33 +12,37 @@
         android:supportsRtl="false"
         android:theme="@style/Theme.Bagrot_work"
         tools:targetApi="31">
-
         <activity
-            android:name=".screens.EditUser"
-            android:screenOrientation="landscape"
-            android:exported="false" />
-        <activity
-            android:name=".screens.LevelsActivity"
-            android:screenOrientation="landscape"
-            android:exported="false" />
-        <activity
-            android:name=".screens.MainActivity"
-            android:screenOrientation="landscape"
-            android:exported="false" />
-        <activity
-            android:name=".screens.Register"
-            android:screenOrientation="landscape"
-            android:exported="false" />
-        <activity
-            android:name=".screens.Home_page"
-            android:screenOrientation="landscape"
-            android:exported="false" />
+            android:name=".screens.LevelTwoActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
         <activity
             android:name=".screens.LevelOneActivity"
-            android:screenOrientation="landscape"
-            android:exported="true">
+            android:exported="false"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".screens.EditUser"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".screens.MainActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".screens.Register"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".screens.Home_page"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".screens.LevelsActivity"
+            android:exported="true"
+            android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

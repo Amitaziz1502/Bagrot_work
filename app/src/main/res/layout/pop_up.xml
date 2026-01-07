@@ -41,7 +41,7 @@
 
             <ImageButton
                 android:id="@+id/continue_popup"
-                android:layout_width="100dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
@@ -49,17 +49,20 @@
 
             <ImageButton
                 android:id="@+id/exit_popup"
-                android:layout_width="130dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@android:color/transparent"
                 app:srcCompat="@drawable/exit__1_" />
 
-            <Button
-                android:id="@+id/add_level"
+            <ImageButton
+                android:id="@+id/retry"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+
                 android:layout_weight="1"
-                android:text="+" />
+                app:srcCompat="@drawable/reload" />
+
 
         </LinearLayout>
 
