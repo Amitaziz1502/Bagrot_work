@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 
+
 public class GameView extends SurfaceView implements Runnable {
 
     private Thread gameThread;
@@ -147,13 +148,14 @@ public class GameView extends SurfaceView implements Runnable {
     private boolean isLevelEnding = false;
     private int blackAlpha = 0;
 
-    //images in game
-    private Map<String, Bitmap> imageCache = new HashMap<>();
-    private GameLevel currentLevelData;
+    //Moving platforms
+    private List<MovingPlatform> movingPlatforms = new ArrayList<>();
 
 
     //checking what level your in
     private int currentLevel = 1;
+
+
     public void setLevel(int level) {
         this.currentLevel = level;
         loadLevelFromCloud(level);
@@ -286,7 +288,7 @@ public class GameView extends SurfaceView implements Runnable {
 
         if (!isDead) {
             //Checking if player has reached the end of the level
-            if (playerX >= 20000) {
+            if (playerX >= worldWidth-playerSize) {
                 isLevelEnding = true;
                 gameStarted = false;
             }
@@ -300,11 +302,25 @@ public class GameView extends SurfaceView implements Runnable {
                 if (blackAlpha < 255) {
                     blackAlpha += 2;
                 } else {
-                    Intent intent = new Intent(getContext(), LevelsActivity.class);
-                    getContext().startActivity(intent);
-                    if (getContext() instanceof Activity) {
-                        ((Activity) getContext()).finish();
+                    switch(currentLevel){
+                        case 1:
+                            Intent goToLevelTwo = new Intent(getContext(), LevelTwoActivity.class);
+                            getContext().startActivity(goToLevelTwo);
+                            if (getContext() instanceof Activity) {
+                                ((Activity) getContext()).finish();
+                            }
+                            break;
+
+                        case 2:
+                            Intent goToHome = new Intent(getContext(), LevelThreeActivity.class);
+                            getContext().startActivity(goToHome);
+                            if (getContext() instanceof Activity) {
+                                ((Activity) getContext()).finish();
+                            }
+                            break;
+
                     }
+
                 }
             }
             else {
@@ -346,6 +362,45 @@ public class GameView extends SurfaceView implements Runnable {
                                 playerX = platform.left - playerSize;
                             } else if (playerX < platform.right && playerX + playerSize > platform.right) {
                                 playerX = platform.right;
+                            }
+                        }
+                    }
+                }
+
+                // Checking moving platforms
+                for (MovingPlatform mp : movingPlatforms) {
+                    mp.update();
+
+                    playerRect.set((int)playerX + 20, (int)playerY + 20, (int)(playerX + playerSize) - 20, (int)(playerY + playerSize));
+                    if (Rect.intersects(playerRect, mp.rect)) {
+
+                        // Landing on top of the platform
+                        if (velocityY >= 0 && (playerY + playerSize) <= (mp.rect.top + velocityY + 15)) {
+                            playerY = mp.rect.top - playerSize ;
+                            velocityY = 0;
+                            onGround = true;
+
+                            // Moving the player with the platform
+                            if (mp.movingForward) {
+                                playerX += mp.speed;
+                            } else {
+                                playerX -= mp.speed;
+                            }
+                        }
+
+                        //collision with bottom
+                        else if (velocityY < 0 && playerY >= (mp.rect.bottom + velocityY - 15)) {
+                            playerY = mp.rect.bottom;
+                            velocityY = 0;
+                        }
+
+                        //collision with the sides
+                        else {
+                            if (playerX + playerSize > mp.rect.left && playerX < mp.rect.left) {
+                                playerX = mp.rect.left - playerSize;
+                            }
+                            else if (playerX < mp.rect.right && playerX + playerSize > mp.rect.right) {
+                                playerX = mp.rect.right;
                             }
                         }
                     }
@@ -498,6 +553,7 @@ public class GameView extends SurfaceView implements Runnable {
             }
             paint.setAlpha(255);
 
+
             // Drawing player animation (both sides)
             if (!isDead) {
                 canvas.save();
@@ -570,6 +626,15 @@ public class GameView extends SurfaceView implements Runnable {
                     canvas.drawRect(platform, paint);
                 }
             }
+
+            //Drawing moving platforms
+            paint.setColor(Color.BLUE);
+            for (MovingPlatform mp : movingPlatforms) {
+                if (mp.rect.right > worldOffsetX && mp.rect.left < worldOffsetX + getWidth()) {
+                    canvas.drawRect(mp.rect, paint);
+                }
+            }
+
             //Drawing flag
             for (int i = 0; i < checkpoints.size(); i++) {
                 Rect cp = checkpoints.get(i);
@@ -724,13 +789,19 @@ public class GameView extends SurfaceView implements Runnable {
 
             ImageButton btnRetry = customView.findViewById(R.id.retry);
             btnRetry.setOnClickListener(v -> {
-                  playerX = 200;
-                  playerY = 500;
-                  savedCheckpointX=playerX;
-                  savedCheckpointY=playerY;
-                  timeLeftMillis = 120000;
-                  dialog.dismiss();
+                playerX = 200;
+                playerY = 500;
+                savedCheckpointX=playerX;
+                savedCheckpointY=playerY;
+                timeLeftMillis = 120000;
+                dialog.dismiss();
 
+
+            });
+            Button btnAdd = customView.findViewById(R.id.btnAdd);
+            btnAdd.setOnClickListener(v -> {
+                DatabaseService.getInstance().CreateNewLevel(1,getHeight() - 200);
+                DatabaseService.getInstance().CreateNewLevel(2,getHeight() - 200);
 
             });
 
@@ -779,6 +850,13 @@ public class GameView extends SurfaceView implements Runnable {
                 this.floatingTexts.add(new FloatingText(ft.text, ft.x, ft.y));
             }
 
+            movingPlatforms.clear();
+            if (data.movingPlatforms != null) {
+                for (GameLevel.MovingPlatformData mpd : data.movingPlatforms) {
+                    movingPlatforms.add(new MovingPlatform(mpd.x, mpd.y, mpd.width, mpd.height, mpd.range, mpd.speed));
+                }
+            }
+
             checkpointActivated.clear();
             for (Rect r : checkpoints) checkpointActivated.add(false);
         }
@@ -809,6 +887,13 @@ public class GameView extends SurfaceView implements Runnable {
                         }
                     }
 
+                    movingPlatforms.clear();
+                    if (data.movingPlatforms != null) {
+                        for (GameLevel.MovingPlatformData mpd : data.movingPlatforms) {
+                            movingPlatforms.add(new MovingPlatform(mpd.x, mpd.y, mpd.width, mpd.height, mpd.range, mpd.speed));
+                        }
+                    }
+
                     checkpointActivated.clear();
                     for (Rect r : checkpoints) checkpointActivated.add(false);
 
@@ -823,5 +908,32 @@ public class GameView extends SurfaceView implements Runnable {
                 Log.e("DB", "Failed to load level", error.toException());
             }
         });
+    }
+
+    private class MovingPlatform {
+        Rect rect;
+        float startX, endX;
+        float speed;
+        boolean movingForward = true;
+
+        public MovingPlatform(int x, int y, int width, int height, int range, float speed) {
+            this.rect = new Rect(x, y, x + width, y + height);
+            this.startX = x;
+            this.endX = x + range;
+            this.speed = speed;
+        }
+
+        public void update() {
+            if (movingForward) {
+                rect.offset((int)speed, 0);
+                if (rect.left >= endX)
+                    movingForward = false;
+            }
+            else {
+                rect.offset((int)-speed, 0);
+                if (rect.left <= startX)
+                    movingForward = true;
+            }
+        }
     }
 }

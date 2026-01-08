@@ -13,6 +13,11 @@
         android:theme="@style/Theme.Bagrot_work"
         tools:targetApi="31">
         <activity
+            android:name=".screens.LevelThreeActivity"
+            android:exported="false"
+            android:screenOrientation="landscape"
+            android:theme="@style/Theme.Bagrot_work" />
+        <activity
             android:name=".screens.LevelTwoActivity"
             android:exported="false"
             android:screenOrientation="landscape" />

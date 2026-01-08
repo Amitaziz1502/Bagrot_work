@@ -38,6 +38,7 @@ public class LevelsActivity extends BaseActivity implements View.OnClickListener
         btnReturnHome.setOnClickListener(this);
         btnFloat.setOnClickListener(this);
         btnFloat2.setOnClickListener(this);
+        btnFloat3.setOnClickListener(this);
 
 
     }
@@ -52,6 +53,11 @@ public class LevelsActivity extends BaseActivity implements View.OnClickListener
         if(v.getId() == R.id.btnLevel2){
             Intent goToLevel2 = new Intent(LevelsActivity.this, LevelTwoActivity.class);
             startActivity(goToLevel2);
+
+        }
+        if(v.getId() == R.id.btnLevel3){
+            Intent goToLevel3 = new Intent(LevelsActivity.this, LevelThreeActivity.class);
+            startActivity(goToLevel3);
 
         }
         if(v.getId() == R.id.btnGoHome){

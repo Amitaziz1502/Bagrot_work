@@ -16,6 +16,7 @@ public class GameLevel {
     public List<RectData> checkpoints;
     public List<RectData> coins;
     public List<FloatingTextData> floatingTexts;
+    public List<MovingPlatformData> movingPlatforms;
     public float worldWidth;
     public long levelTimeMillis;
 
@@ -24,6 +25,7 @@ public class GameLevel {
         this.spikes = new ArrayList<>();
         this.checkpoints = new ArrayList<>();
         this.floatingTexts = new ArrayList<>();
+        this.movingPlatforms = new ArrayList<>();
     }
 
     public static class RectData {
@@ -37,6 +39,22 @@ public class GameLevel {
 
         public Rect toRect() {
             return new Rect(left, top, right, bottom);
+        }
+    }
+
+    public static class MovingPlatformData {
+        public int x, y, width, height, range;
+        public float speed;
+
+        public MovingPlatformData() {}
+
+        public MovingPlatformData(int x, int y, int width, int height, int range, float speed) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.range = range;
+            this.speed = speed;
         }
     }
 
@@ -58,24 +76,24 @@ public class GameLevel {
         GameLevel level = new GameLevel();
         switch(levelNumber){
             case 1:
-                level.worldWidth = 20000;
+                level.worldWidth = 14500;
                 level.levelTimeMillis = 120000;
+
                 //Texts
                 level.floatingTexts.add(new FloatingTextData("Welcome to my game! ", 400, floorLevel - 500));
                 level.floatingTexts.add(new FloatingTextData("To move u can use the arrows... ", 700, floorLevel - 400));
                 level.floatingTexts.add(new FloatingTextData("GO TO THE PLATFORM!!! ", 2400, floorLevel - 400));
                 level.floatingTexts.add(new FloatingTextData("U can use the right side of the screen to jump... ", 3600, floorLevel - 500));
                 level.floatingTexts.add(new FloatingTextData("Be careful don't touch the spikes!! ", 5500, floorLevel - 500));
-                level.floatingTexts.add(new FloatingTextData("THE CAT MIGHT EXPLODE!!! ", 5500, floorLevel - 400));
+                level.floatingTexts.add(new FloatingTextData("YOUR CAT MIGHT EXPLODE!!! ", 5500, floorLevel - 400));
                 level.floatingTexts.add(new FloatingTextData("Go collect the checkpoint  ", 8000, floorLevel - 400));
                 level.floatingTexts.add(new FloatingTextData("Now you're place will be saved! ", 9800, floorLevel - 400));
-                level.floatingTexts.add(new FloatingTextData("notice the time on your top left screen! ", 10600, floorLevel - 400));
-                level.floatingTexts.add(new FloatingTextData("Make sure to finish the level ", 11000, floorLevel - 400));
-
-
-
-
-
+                level.floatingTexts.add(new FloatingTextData("You can check by interacting with the spike... ", 9900, floorLevel - 300));
+                level.floatingTexts.add(new FloatingTextData("notice the time on your top left screen! ", 11500, floorLevel - 400));
+                level.floatingTexts.add(new FloatingTextData("Make sure to finish the level before its over... ", 12500, floorLevel - 300));
+                level.floatingTexts.add(new FloatingTextData("And... ", 13950, floorLevel - 400));
+                level.floatingTexts.add(new FloatingTextData("That's it! ", 14000, floorLevel - 300));
+                level.floatingTexts.add(new FloatingTextData("GO ENJOY THE GAME!!! ", 14200, floorLevel - 200));
 
                 //Platforms
                 level.platforms.add(new RectData(3600, floorLevel-100, 4000, floorLevel));
@@ -87,7 +105,6 @@ public class GameLevel {
                 level.spikes.add(new RectData(7300, floorLevel - 100, 7350, floorLevel));
                 level.spikes.add(new RectData(10000, floorLevel - 100, 10100, floorLevel));
 
-
                 //Checkpoint
                 level.checkpoints.add(new RectData(9000, floorLevel - 200, 9100, floorLevel ));
 
@@ -96,7 +113,7 @@ public class GameLevel {
                 break;
 
             case 2:
-                level.worldWidth = 22000;
+                level.worldWidth = 20000;
                 level.levelTimeMillis = 120000;
 
                 //Platforms
@@ -145,6 +162,17 @@ public class GameLevel {
                 level.floatingTexts.add(new FloatingTextData("The owner is not here! ", 18600, floorLevel - 400));
                 level.floatingTexts.add(new FloatingTextData("Maybe you can find him in the next neighborhood? ", 19500, floorLevel - 300));
                 break;
+            case 3:
+                level.worldWidth = 20000;
+                level.levelTimeMillis = 120000;
+
+                level.platforms.add(new RectData(1900, 600, 2200, 650));
+
+                level.spikes.add(new RectData(1200, floorLevel - 100, 1300, floorLevel));
+
+                level.movingPlatforms.add(new MovingPlatformData(200, floorLevel - 100, 200, 50, 500, 4f));
+
+
 
         }
 
