@@ -1,5 +1,7 @@
 package com.example.bagrot_work.screens;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -29,16 +31,14 @@ public class LevelsActivity extends BaseActivity implements View.OnClickListener
         ImageButton btnFloat3 = findViewById(R.id.btnLevel3);
         ImageButton btnFloat4 = findViewById(R.id.btnLevel4);
         ImageButton btnFloat5 = findViewById(R.id.btnLevel5);
-        ImageButton btnFloat6 = findViewById(R.id.btnLevel6);
-        ImageButton btnFloat7 = findViewById(R.id.btnLevel7);
-        ImageButton btnFloat8 = findViewById(R.id.btnLevel8);
-        ImageButton btnFloat9 = findViewById(R.id.btnLevel9);
-        ImageButton btnFloat10 = findViewById(R.id.btnLevel10);
         ImageButton btnReturnHome = findViewById(R.id.btnGoHome);
         btnReturnHome.setOnClickListener(this);
         btnFloat.setOnClickListener(this);
         btnFloat2.setOnClickListener(this);
         btnFloat3.setOnClickListener(this);
+
+        startFloatingAnimation(btnFloat, btnFloat2, btnFloat3, btnFloat4, btnFloat5);
+
 
 
     }
@@ -64,6 +64,15 @@ public class LevelsActivity extends BaseActivity implements View.OnClickListener
             Intent ReturnHome = new Intent(LevelsActivity.this, Home_page.class);
             startActivity(ReturnHome);
 
+        }
+    }
+    private void startFloatingAnimation(View... buttons) {
+        for (View btn : buttons) {
+            ObjectAnimator animator = ObjectAnimator.ofFloat(btn, "translationY", 0f, -30f);
+            animator.setDuration(1000);
+            animator.setRepeatMode(ValueAnimator.REVERSE);
+            animator.setRepeatCount(ValueAnimator.INFINITE);
+            animator.start();
         }
     }
 }

@@ -1,99 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#0B1150"
-    tools:context=".screens.Home_page">
+    android:fillViewport="true">
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="275dp"
-        android:layout_height="198dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:srcCompat="@drawable/__2025_11_18_182540"
-        tools:layout_editor_absoluteY="0dp" />
-
-    <ImageButton
-        android:id="@+id/btnToLevelMap"
-        android:layout_width="148dp"
-        android:layout_height="151dp"
-        android:background="#0B1150"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.499"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/imageView"
-        app:layout_constraintVertical_bias="0.0"
-        app:srcCompat="@drawable/play_button__1_" />
-
-    <ImageButton
-        android:id="@+id/sign_out"
-        android:layout_width="147dp"
-        android:layout_height="83dp"
-        android:layout_marginStart="16dp"
-        android:background="#0B1150"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.053"
-        app:srcCompat="@drawable/logout__2_" />
-
-    <ImageButton
-        android:id="@+id/imageButton6"
-        android:layout_width="114dp"
-        android:layout_height="113dp"
-        android:background="#0B1150"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.265"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.765"
-        app:srcCompat="@drawable/pen__2_" />
-
-    <ImageButton
-        android:id="@+id/btn_edit_user"
-        android:layout_width="114dp"
-        android:layout_height="113dp"
-        android:background="#0B1150"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.727"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.765"
-        app:srcCompat="@drawable/edit_info__1_" />
-
-    <TextView
-        android:id="@+id/tvUserDisplayName"
-        android:layout_width="170dp"
-        android:layout_height="27dp"
-        android:layout_marginEnd="16dp"
-        android:fontFamily="@font/adlam_display"
-        android:text="name"
-        android:textColor="#ffffff"
-        android:textSize="24sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.046" />
-
-    <ImageButton
-        android:id="@+id/btnAdminPage"
-        android:layout_width="wrap_content"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/main"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#0B1150"
-        android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.639"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.472"
-        app:srcCompat="@drawable/admin_panel__1_" />
+        tools:context=".screens.Home_page">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="275dp"
+            android:layout_height="198dp"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/__2025_11_18_182540" />
+
+        <ImageButton
+            android:id="@+id/btnToLevelMap"
+            android:layout_width="148dp"
+            android:layout_height="151dp"
+            android:background="#0B1150"
+            app:layout_constraintTop_toBottomOf="@id/imageView"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintVertical_bias="0.0"
+            app:srcCompat="@drawable/play_button__1_" />
+
+        <ImageButton
+            android:id="@+id/sign_out"
+            android:layout_width="147dp"
+            android:layout_height="83dp"
+            android:background="#0B1150"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintVertical_bias="0.053"
+            app:srcCompat="@drawable/logout__2_" />
+
+        <ImageButton
+            android:id="@+id/imageButton6"
+            android:layout_width="114dp"
+            android:layout_height="113dp"
+            android:background="#0B1150"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.265"
+            app:layout_constraintVertical_bias="0.765"
+            app:srcCompat="@drawable/pen__2_" />
+
+        <ImageButton
+            android:id="@+id/btn_edit_user"
+            android:layout_width="114dp"
+            android:layout_height="113dp"
+            android:background="#0B1150"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.727"
+            app:layout_constraintVertical_bias="0.765"
+            app:srcCompat="@drawable/edit_info__1_" />
+
+        <TextView
+            android:id="@+id/tvUserDisplayName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/adlam_display"
+            android:text="name"
+            android:textColor="#ffffff"
+            android:textSize="24sp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintVertical_bias="0.046"
+            android:layout_marginEnd="16dp" />
+
+        <ImageButton
+            android:id="@+id/btnAdminPage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#0B1150"
+            android:visibility="visible"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintVertical_bias="0.472"
+            app:layout_constraintHorizontal_bias="0.639"
+            app:srcCompat="@drawable/admin_panel__1_" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="32dp"
+            app:layout_constraintTop_toBottomOf="@id/btn_edit_user"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
+
