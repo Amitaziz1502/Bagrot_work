@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.core.graphics.Insets;
@@ -37,7 +38,15 @@ public class LevelsActivity extends BaseActivity implements View.OnClickListener
         btnFloat2.setOnClickListener(this);
         btnFloat3.setOnClickListener(this);
 
-        startFloatingAnimation(btnFloat, btnFloat2, btnFloat3, btnFloat4, btnFloat5);
+        TextView level1_txt,level2_txt,level3_txt,level4_txt,level5_txt;
+        level1_txt = findViewById(R.id.tvLevel1);
+        level2_txt = findViewById(R.id.tvLevel2);
+        level3_txt = findViewById(R.id.tvLevel3);
+        level4_txt = findViewById(R.id.tvLevel4);
+        level5_txt = findViewById(R.id.tvLevel5);
+
+
+        startFloatingAnimation(btnFloat, btnFloat2, btnFloat3, btnFloat4, btnFloat5,level1_txt,level2_txt,level3_txt,level4_txt,level5_txt);
 
 
 

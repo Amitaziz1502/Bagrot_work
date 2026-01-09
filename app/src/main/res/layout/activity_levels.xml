@@ -9,7 +9,6 @@
     android:background="#0B1150"
     tools:context=".screens.LevelsActivity">
 
-    <!-- LEVEL BUTTONS -->
     <ImageButton
         android:id="@+id/btnLevel1"
         android:layout_width="wrap_content"
@@ -62,7 +61,6 @@
         app:layout_constraintVertical_bias="0.804"
         app:srcCompat="@drawable/levels" />
 
-    <!-- LOGO -->
     <ImageButton
         android:id="@+id/btnLevel5"
         android:layout_width="wrap_content"
@@ -78,8 +76,8 @@
 
     <ImageView
         android:id="@+id/imageView2"
-        android:layout_width="283dp"
-        android:layout_height="120dp"
+        android:layout_width="279dp"
+        android:layout_height="108dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.484"
@@ -88,7 +86,6 @@
         app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@drawable/minimum_logo" />
 
-    <!-- LEVEL TEXTS -->
     <TextView
         android:id="@+id/tvLevel1"
         android:layout_width="wrap_content"

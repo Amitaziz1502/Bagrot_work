@@ -68,10 +68,13 @@ public class GameView extends SurfaceView implements Runnable {
 
     // Cached bitmaps
     private Bitmap backgroundImage;
+    private Bitmap backgroundImage2;
     private Bitmap scaledBackground;
+    private Bitmap scaledBackground2;
     private Bitmap characterImage;
     private Bitmap spikeimage;
-    private int floor_color;
+    private int floor_color1;
+    private int floor_color2;
     private int main_color;
 
     //Spikes settings
@@ -180,7 +183,8 @@ public class GameView extends SurfaceView implements Runnable {
         paint.setAntiAlias(false);// Fps push
         paint.setFilterBitmap(false); // Make the pictures smoother
         paint.setDither(false); // Saving processing time
-        floor_color = Color.parseColor("#0F2A55");
+        floor_color1 = Color.parseColor("#0F2A55");
+        floor_color2 = Color.parseColor("#122D28");
         main_color =Color.parseColor("#353C6F");// Setting the color one time
 
         //Clock
@@ -220,6 +224,10 @@ public class GameView extends SurfaceView implements Runnable {
             backgroundImage = BitmapFactory.decodeResource(getResources(), R.drawable.background_img, options);
 
         }
+        if(backgroundImage2 == null){
+            backgroundImage2 = BitmapFactory.decodeResource(getResources(), R.drawable.landscape_image);
+
+        }
 
         if (spriteSheet == null) {
             spriteSheet = BitmapFactory.decodeResource(getResources(), R.drawable.cat_run_spritesheet);
@@ -249,12 +257,13 @@ public class GameView extends SurfaceView implements Runnable {
     }
 
     private void scaleBackgroundIfNeeded() {
-        if (backgroundImage == null) return;
+        if (backgroundImage == null || backgroundImage2==null) return;
 
-        if (scaledBackground == null && getWidth() > 0 && getHeight() > 0) {
+        if (scaledBackground == null && getWidth() > 0 && getHeight() > 0 || scaledBackground2 == null && getWidth() > 0 && getHeight() > 0) {
             int newHeight = getHeight()+150;
             int newWidth = getWidth()+300;
             scaledBackground = Bitmap.createScaledBitmap(backgroundImage, newWidth, newHeight, false);
+            scaledBackground2 = Bitmap.createScaledBitmap(backgroundImage2, newWidth, newHeight, false);
         }
     }
 
@@ -517,9 +526,13 @@ public class GameView extends SurfaceView implements Runnable {
         try {
             // Drawing background
             float backgroundscroll = worldOffsetX > 200 ? 200 : worldOffsetX;
-            if (scaledBackground != null) {
+            if (scaledBackground != null && currentLevel==1) {
                 canvas.drawBitmap(scaledBackground, -backgroundscroll, -150, paint);
-            } else {
+            }
+            else if(scaledBackground2 != null && currentLevel==2){
+                canvas.drawBitmap(scaledBackground2, -backgroundscroll, -150, paint);
+            }
+            else {
                 canvas.drawColor(Color.BLACK);
             }
 
@@ -530,8 +543,15 @@ public class GameView extends SurfaceView implements Runnable {
 
             // Drawing floor + obstecals
             paint.setAlpha(255);
-            paint.setColor(floor_color);
-            canvas.drawRect(worldOffsetX, getHeight() - 200, worldOffsetX + getWidth(), getHeight(), paint);
+            if(currentLevel==1){
+                paint.setColor(floor_color1);
+                canvas.drawRect(worldOffsetX, getHeight() - 200, worldOffsetX + getWidth(), getHeight(), paint);
+            }
+            else if(currentLevel==2){
+                paint.setColor(floor_color2);
+                canvas.drawRect(worldOffsetX, getHeight() - 200, worldOffsetX + getWidth(), getHeight(), paint);
+
+            }
             for (Rect spike : spikes) {
                 if (spike.right > worldOffsetX && spike.left < worldOffsetX + getWidth()) {
 
