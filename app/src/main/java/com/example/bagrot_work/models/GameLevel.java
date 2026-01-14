@@ -14,7 +14,7 @@ public class GameLevel {
     public List<RectData> platforms;
     public List<RectData> spikes;
     public List<RectData> checkpoints;
-    public List<RectData> coins;
+    public List<CoinData> coins;
     public List<FloatingTextData> floatingTexts;
     public List<MovingPlatformData> movingPlatforms;
     public float worldWidth;
@@ -26,6 +26,8 @@ public class GameLevel {
         this.checkpoints = new ArrayList<>();
         this.floatingTexts = new ArrayList<>();
         this.movingPlatforms = new ArrayList<>();
+        this.coins = new ArrayList<>();
+
     }
 
     public static class RectData {
@@ -66,6 +68,16 @@ public class GameLevel {
             this.text = text;
             this.x = x;
             this.y = y;
+        }
+    }
+
+    public static class CoinData {
+        public int left, top, right, bottom;
+
+        public CoinData() {}
+
+        public CoinData(int l, int t, int r, int b) {
+            this.left = l; this.top = t; this.right = r; this.bottom = b;
         }
     }
 
@@ -171,6 +183,8 @@ public class GameLevel {
                 level.spikes.add(new RectData(1200, floorLevel - 100, 1300, floorLevel));
 
                 level.movingPlatforms.add(new MovingPlatformData(200, floorLevel - 100, 200, 50, 500, 4f));
+
+                level.coins.add(new CoinData(400, floorLevel - 200, 500, floorLevel-100 ));
 
 
 

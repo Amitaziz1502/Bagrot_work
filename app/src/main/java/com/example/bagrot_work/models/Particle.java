@@ -17,4 +17,5 @@ class Particle {
         y += vy;
         alpha -= 5; // The particle is slowly disapering
     }
+
 }

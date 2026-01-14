@@ -1,5 +1,6 @@
 package com.example.bagrot_work.screens;
 
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -69,12 +70,15 @@ public class GameView extends SurfaceView implements Runnable {
     // Cached bitmaps
     private Bitmap backgroundImage;
     private Bitmap backgroundImage2;
+    private Bitmap backgroundImage3;
     private Bitmap scaledBackground;
     private Bitmap scaledBackground2;
+    private Bitmap scaledBackground3;
     private Bitmap characterImage;
     private Bitmap spikeimage;
     private int floor_color1;
     private int floor_color2;
+    private int floor_color3;
     private int main_color;
 
     //Spikes settings
@@ -90,6 +94,8 @@ public class GameView extends SurfaceView implements Runnable {
 
     //Platform settings
     private List<Rect> platforms = new ArrayList<>();
+
+
 
     //Player Collision with obstacles
     private Rect playerRect = new Rect();
@@ -158,6 +164,15 @@ public class GameView extends SurfaceView implements Runnable {
     //checking what level your in
     private int currentLevel = 1;
 
+    // Coins properties
+    private List<Coin> coins = new ArrayList<>();
+    private Bitmap coinImage;
+    private Paint coinPaint;
+    private int coinsCollected = 0;
+    private int totalCoinsInLevel = 0;
+
+
+
 
     public void setLevel(int level) {
         this.currentLevel = level;
@@ -185,6 +200,7 @@ public class GameView extends SurfaceView implements Runnable {
         paint.setDither(false); // Saving processing time
         floor_color1 = Color.parseColor("#0F2A55");
         floor_color2 = Color.parseColor("#122D28");
+        floor_color3 = Color.parseColor("#ECB681");
         main_color =Color.parseColor("#353C6F");// Setting the color one time
 
         //Clock
@@ -205,6 +221,11 @@ public class GameView extends SurfaceView implements Runnable {
         floatingTextPaint.setFakeBoldText(true);
         floatingTextPaint.setAntiAlias(true);
         floatingTextPaint.setTextAlign(Paint.Align.CENTER);
+
+        //coin
+        coinPaint = new Paint();
+        coinPaint.setFilterBitmap(true);
+        coinPaint.setAntiAlias(true);
     }
 
 
@@ -226,6 +247,10 @@ public class GameView extends SurfaceView implements Runnable {
         }
         if(backgroundImage2 == null){
             backgroundImage2 = BitmapFactory.decodeResource(getResources(), R.drawable.landscape_image);
+
+        }
+        if(backgroundImage3 == null){
+            backgroundImage3 = BitmapFactory.decodeResource(getResources(), R.drawable.wildwest);
 
         }
 
@@ -253,17 +278,22 @@ public class GameView extends SurfaceView implements Runnable {
             checkpointImageAfter = BitmapFactory.decodeResource(getResources(), R.drawable.flag2);
 
         }
+        if(coinImage == null){
+            coinImage = BitmapFactory.decodeResource(getResources(), R.drawable.coin);
+
+        }
 
     }
 
     private void scaleBackgroundIfNeeded() {
         if (backgroundImage == null || backgroundImage2==null) return;
 
-        if (scaledBackground == null && getWidth() > 0 && getHeight() > 0 || scaledBackground2 == null && getWidth() > 0 && getHeight() > 0) {
+        if (scaledBackground == null && getWidth() > 0 && getHeight() > 0 || scaledBackground2 == null && getWidth() > 0 && getHeight() > 0 || scaledBackground3 == null && getWidth() > 0 && getHeight() > 0) {
             int newHeight = getHeight()+150;
             int newWidth = getWidth()+300;
             scaledBackground = Bitmap.createScaledBitmap(backgroundImage, newWidth, newHeight, false);
             scaledBackground2 = Bitmap.createScaledBitmap(backgroundImage2, newWidth, newHeight, false);
+            scaledBackground3 = Bitmap.createScaledBitmap(backgroundImage3, newWidth, newHeight+300, false);
         }
     }
 
@@ -415,6 +445,7 @@ public class GameView extends SurfaceView implements Runnable {
                     }
                 }
 
+
                 isJumping = !onGround;
 
                 // Spike check
@@ -426,6 +457,21 @@ public class GameView extends SurfaceView implements Runnable {
                         }
                     }
                 }
+
+                //Coin check
+                for (Coin coin : coins) {
+                    if (coin.isVisible && !coin.isCollected) {
+
+                        if (playerX + playerSize > coin.position.left - 100 && playerX < coin.position.right + 100) {
+
+                            if (Rect.intersects(playerRect, coin.position)) {
+                                coin.isCollected = true;
+                                coinsCollected++;
+                            }
+                        }
+                    }
+                }
+
 
                 // Checkpoint check
                 for (int i = 0; i < checkpoints.size(); i++) {
@@ -524,6 +570,9 @@ public class GameView extends SurfaceView implements Runnable {
         if (canvas == null) return;
 
         try {
+
+
+
             // Drawing background
             float backgroundscroll = worldOffsetX > 200 ? 200 : worldOffsetX;
             if (scaledBackground != null && currentLevel==1) {
@@ -531,6 +580,9 @@ public class GameView extends SurfaceView implements Runnable {
             }
             else if(scaledBackground2 != null && currentLevel==2){
                 canvas.drawBitmap(scaledBackground2, -backgroundscroll, -150, paint);
+            }
+            else if (scaledBackground3 != null && currentLevel==3) {
+                canvas.drawBitmap(scaledBackground3, -backgroundscroll, -300, paint);
             }
             else {
                 canvas.drawColor(Color.BLACK);
@@ -549,6 +601,11 @@ public class GameView extends SurfaceView implements Runnable {
             }
             else if(currentLevel==2){
                 paint.setColor(floor_color2);
+                canvas.drawRect(worldOffsetX, getHeight() - 200, worldOffsetX + getWidth(), getHeight(), paint);
+
+            }
+            else if(currentLevel==3){
+                paint.setColor(floor_color3);
                 canvas.drawRect(worldOffsetX, getHeight() - 200, worldOffsetX + getWidth(), getHeight(), paint);
 
             }
@@ -626,6 +683,15 @@ public class GameView extends SurfaceView implements Runnable {
                     }
                     frameToDraw = idleCurrentFrame;
                 }
+
+                //Score
+                int xPos = getWidth() - 450;
+                int yPos = 100;
+                canvas.drawBitmap(coinImage, xPos, yPos - 60, null);
+                String scoreText = coinsCollected + " / " + totalCoinsInLevel;
+                canvas.drawText(scoreText, xPos + 100, yPos, textPaint);
+
+
                 //Drawing character
                 if (currentSheet != null) {
                     int fWidth = currentSheet.getWidth() / currentTotalFrames;
@@ -679,6 +745,31 @@ public class GameView extends SurfaceView implements Runnable {
             canvas.restore();
             //Drawing clock
             canvas.drawText(timeText, 50, 100, textPaint);
+
+            for (Coin coin : coins) {
+                if (!coin.isVisible) {
+                    continue;
+                }
+
+                canvas.save();
+                coinPaint.setAlpha(coin.alpha);
+
+                float centerX = coin.position.centerX();
+                float centerY = coin.position.centerY() + coin.yOffset;
+                canvas.rotate(coin.rotationAngle, centerX, centerY);
+
+                Rect drawingRect = new Rect(
+                        coin.position.left,
+                        coin.position.top + coin.yOffset,
+                        coin.position.right,
+                        coin.position.bottom + coin.yOffset
+                );
+
+                canvas.drawBitmap(coinImage, null, drawingRect, coinPaint);
+                canvas.restore();
+
+                coin.update();
+            }
 
             //Drawing the black out
             if (blackAlpha > 0) {
@@ -956,4 +1047,39 @@ public class GameView extends SurfaceView implements Runnable {
             }
         }
     }
+
+    class Coin {
+        Rect position;
+        float rotationAngle = 0;
+        int yOffset = 0;
+        int alpha = 255;
+        boolean isCollected = false;
+        boolean isVisible = true;
+
+        void update() {
+            if (isCollected && isVisible) {
+                rotationAngle += 15;
+                yOffset -= 5;
+                alpha -= 10;
+
+                if (alpha <= 0) {
+                    alpha = 0;
+                    isVisible = false;
+                }
+            }
+        }
+
+        void reset() {
+            rotationAngle = 0;
+            yOffset = 0;
+            alpha = 255;
+            isCollected = false;
+            isVisible = true;
+        }
+
+        boolean isFinished() {
+            return alpha <= 0;
+        }
+    }
 }
+
