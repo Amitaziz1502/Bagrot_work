@@ -81,8 +81,6 @@ public class GameLevel {
                 level.worldWidth = 14500;
                 level.levelTimeMillis = 120000;
 
-
-
                 //Texts
                 level.floatingTexts.add(new FloatingTextData("Welcome to my game! ", 400, floorLevel - 500));
                 level.floatingTexts.add(new FloatingTextData("To move u can use the arrows... ", 700, floorLevel - 400));
@@ -175,21 +173,10 @@ public class GameLevel {
                 level.worldWidth = 20000;
                 level.levelTimeMillis = 120000;
 
-
-                //Platforms
-                level.platforms.add(new RectData(2800, floorLevel - 400, 4000, floorLevel - 350));
-
-                //
-                level.platforms.add(new RectData(6900, floorLevel - 500, 7300, floorLevel - 450));
-                level.platforms.add(new RectData(7600, floorLevel - 400, 8000, floorLevel - 350));
-                level.platforms.add(new RectData(8300, floorLevel - 300, 8700, floorLevel - 250));
-                level.platforms.add(new RectData(9000, floorLevel - 200, 9400, floorLevel - 150));
-
-
-
-
                 //checkpoints
-                level.checkpoints.add(new RectData(10000, floorLevel - 100, 10100, floorLevel ));
+                level.checkpoints.add(new RectData(9800, floorLevel - 100, 9900, floorLevel ));
+                level.checkpoints.add(new RectData(14500, floorLevel - 1500, 14600, floorLevel - 1400 ));
+
 
                 //Spikes
                 level.spikes.add(new RectData(500, floorLevel - 100, 9000, floorLevel));
@@ -198,10 +185,17 @@ public class GameLevel {
                 level.spikes.add(new RectData(5000, floorLevel - 400, 5100, floorLevel - 300));
                 level.spikes.add(new RectData(5600, floorLevel - 400, 5700, floorLevel - 300));
                 level.spikes.add(new RectData(6200, floorLevel - 400, 6300, floorLevel - 300));
+                level.spikes.add(new RectData(10600, floorLevel - 100, 15600, floorLevel));
+                level.spikes.add(new RectData(12600, floorLevel - 500, 12700, floorLevel-400));
+                //floor1
+                level.spikes.add(new RectData(13200, floorLevel - 500, 13300, floorLevel-400));
+                level.spikes.add(new RectData(13800, floorLevel - 500, 13800, floorLevel-400));
+                level.spikes.add(new RectData(13800, floorLevel - 500, 13900, floorLevel-400));
+                //floor2
+                level.spikes.add(new RectData(13100, floorLevel - 1000, 13200, floorLevel-900));
+                level.spikes.add(new RectData(13900, floorLevel - 1000, 14000, floorLevel-900));
 
-
-
-
+                level.spikes.add(new RectData(15600, floorLevel - 100, 20000, floorLevel));
 
 
 
@@ -209,8 +203,35 @@ public class GameLevel {
                 level.movingPlatforms.add(new MovingPlatformData(400, floorLevel - 200, 500, 50, 500, 6f));
                 level.movingPlatforms.add(new MovingPlatformData(1600, floorLevel - 300, 300, 50, 700, 6f));
                 level.movingPlatforms.add(new MovingPlatformData(4100, floorLevel - 300, 2200, 50, 700, 6f));
+                level.movingPlatforms.add(new MovingPlatformData(12000, floorLevel - 400, 2500, 50, 500, 6f));
+                level.movingPlatforms.add(new MovingPlatformData(12300, floorLevel - 900, 2000, 50, 700, 8f));
+                level.movingPlatforms.add(new MovingPlatformData(12300, floorLevel - 1400, 1000, 50, 700, 10f));
 
 
+                //Platforms
+                level.platforms.add(new RectData(2800, floorLevel - 400, 4000, floorLevel - 350));
+                level.platforms.add(new RectData(6900, floorLevel - 500, 7300, floorLevel - 450));
+                level.platforms.add(new RectData(7600, floorLevel - 400, 8000, floorLevel - 350));
+                level.platforms.add(new RectData(8300, floorLevel - 300, 8700, floorLevel - 250));
+                level.platforms.add(new RectData(9000, floorLevel - 200, 9400, floorLevel - 150));
+                level.platforms.add(new RectData(10600, floorLevel - 200, 11000, floorLevel - 150));
+                level.platforms.add(new RectData(11300, floorLevel - 300, 11700, floorLevel - 250));
+                level.platforms.add(new RectData(14900, floorLevel - 650, 15300, floorLevel - 600));
+                level.platforms.add(new RectData(11800, floorLevel - 1150, 12100, floorLevel - 1100));
+                level.platforms.add(new RectData(15500, floorLevel - 1400, 15600, floorLevel));
+                level.platforms.add(new RectData(14000, floorLevel - 1400, 15600, floorLevel-1350));
+                level.platforms.add(new RectData(16100, floorLevel - 1200, 16300, floorLevel-1150));
+                level.platforms.add(new RectData(16800, floorLevel - 1100, 17000, floorLevel-1050));
+                level.platforms.add(new RectData(17500, floorLevel - 1000, 17700, floorLevel-950));
+                level.platforms.add(new RectData(18200, floorLevel - 900, 18700, floorLevel-850));
+                level.platforms.add(new RectData(19200, floorLevel - 800, 23000, floorLevel-750));
+
+
+                //Floating text
+                level.floatingTexts.add(new FloatingTextData("You are doing great! ", 9800, floorLevel -500));
+                level.floatingTexts.add(new FloatingTextData("Don't get all tired now... ", 10000, floorLevel - 400));
+                level.floatingTexts.add(new FloatingTextData("Holy shit... ", 15000, floorLevel - 1500));
+                level.floatingTexts.add(new FloatingTextData("God job!", 15100, floorLevel - 1450));
 
 
 

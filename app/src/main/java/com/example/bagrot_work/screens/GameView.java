@@ -358,14 +358,19 @@ public class GameView extends SurfaceView implements Runnable {
                             break;
 
                         case 2:
-                            Intent goToHome = new Intent(getContext(), LevelThreeActivity.class);
+                            Intent goToLevelThree = new Intent(getContext(), LevelThreeActivity.class);
+                            getContext().startActivity(goToLevelThree);
+                            if (getContext() instanceof Activity) {
+                                ((Activity) getContext()).finish();
+                            }
+                            break;
+                        case 3:
+                            Intent goToHome = new Intent(getContext(), LevelsActivity.class);
                             getContext().startActivity(goToHome);
                             if (getContext() instanceof Activity) {
                                 ((Activity) getContext()).finish();
                             }
                             break;
-
-
                     }
 
                 }
@@ -395,15 +400,24 @@ public class GameView extends SurfaceView implements Runnable {
                     if (platform.right < playerX - 500 || platform.left > playerX + 500) continue;
 
                     if (Rect.intersects(playerRect, platform)) {
-                        if (velocityY >= 0 && (playerY + playerSize) <= (platform.top + velocityY + 15)) {
+
+                        float platformCenterY = (platform.top + platform.bottom) / 2f;
+                        float playerCenterY = (playerY + (playerY + playerSize)) / 2f;
+
+                        // Bottom
+                        if (playerCenterY > platformCenterY) {
+                            if (velocityY < 0) {
+                                playerY = platform.bottom;
+                                velocityY = 0;
+                            }
+                        }
+                        // Top
+                        else if (velocityY >= 0 && (playerY + playerSize) <= (platform.top + velocityY + 15)) {
                             playerY = platform.top - playerSize;
                             velocityY = 0;
                             onGround = true;
                         }
-                        else if (velocityY < 0 && playerY >= (platform.bottom + velocityY - 15)) {
-                            playerY = platform.bottom;
-                            velocityY = 0;
-                        }
+                        // sides
                         else {
                             if (playerX + playerSize > platform.left && playerX < platform.left) {
                                 playerX = platform.left - playerSize;
@@ -938,8 +952,8 @@ public class GameView extends SurfaceView implements Runnable {
             });
             Button btnAdd = customView.findViewById(R.id.btnAdd);
             btnAdd.setOnClickListener(v -> {
-                DatabaseService.getInstance().CreateNewLevel(1,getHeight() - 200);
-                DatabaseService.getInstance().CreateNewLevel(2,getHeight() - 200);
+                DatabaseService.getInstance().CreateNewLevel(3,getHeight() - 200);
+
 
             });
 
