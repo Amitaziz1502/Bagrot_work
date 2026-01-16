@@ -170,6 +170,11 @@ public class GameView extends SurfaceView implements Runnable {
     private Paint coinPaint;
     private int coinsCollected = 0;
     private int totalCoinsInLevel = 0;
+    private int rotationAngle = 0;
+    private int yOffset = 0;
+    private int alpha = 255;
+    private boolean isCollected = false;
+    private boolean isVisible = true;
 
 
 
@@ -226,6 +231,8 @@ public class GameView extends SurfaceView implements Runnable {
         coinPaint = new Paint();
         coinPaint.setFilterBitmap(true);
         coinPaint.setAntiAlias(true);
+
+
     }
 
 
@@ -293,7 +300,7 @@ public class GameView extends SurfaceView implements Runnable {
             int newWidth = getWidth()+300;
             scaledBackground = Bitmap.createScaledBitmap(backgroundImage, newWidth, newHeight, false);
             scaledBackground2 = Bitmap.createScaledBitmap(backgroundImage2, newWidth, newHeight, false);
-            scaledBackground3 = Bitmap.createScaledBitmap(backgroundImage3, newWidth, newHeight+300, false);
+            scaledBackground3 = Bitmap.createScaledBitmap(backgroundImage3, newWidth, newHeight, false);
         }
     }
 
@@ -357,6 +364,7 @@ public class GameView extends SurfaceView implements Runnable {
                                 ((Activity) getContext()).finish();
                             }
                             break;
+
 
                     }
 
@@ -555,6 +563,8 @@ public class GameView extends SurfaceView implements Runnable {
         isDead = false;
         particles.clear(); // Just in case removing the particles
 
+
+
         //Resetting clock
         gameStarted = false;
         if (timeLeftMillis > 10000) {
@@ -582,7 +592,7 @@ public class GameView extends SurfaceView implements Runnable {
                 canvas.drawBitmap(scaledBackground2, -backgroundscroll, -150, paint);
             }
             else if (scaledBackground3 != null && currentLevel==3) {
-                canvas.drawBitmap(scaledBackground3, -backgroundscroll, -300, paint);
+                canvas.drawBitmap(scaledBackground3, -backgroundscroll, -150, paint);
             }
             else {
                 canvas.drawColor(Color.BLACK);
@@ -684,13 +694,6 @@ public class GameView extends SurfaceView implements Runnable {
                     frameToDraw = idleCurrentFrame;
                 }
 
-                //Score
-                int xPos = getWidth() - 450;
-                int yPos = 100;
-                canvas.drawBitmap(coinImage, xPos, yPos - 60, null);
-                String scoreText = coinsCollected + " / " + totalCoinsInLevel;
-                canvas.drawText(scoreText, xPos + 100, yPos, textPaint);
-
 
                 //Drawing character
                 if (currentSheet != null) {
@@ -701,6 +704,36 @@ public class GameView extends SurfaceView implements Runnable {
 
                     canvas.drawBitmap(currentSheet, spriteSrcRect, spriteDstRect, paint);
                 }
+
+                if (coins != null && coinImage != null) {
+                    for (Coin coin : coins) {
+
+                        if (!coin.isVisible) continue;
+
+                        canvas.save();
+
+                        coinPaint.setAlpha(coin.alpha);
+
+                        float centerX = coin.position.centerX();
+                        float centerY = coin.position.centerY() + coin.yOffset;
+
+                        canvas.rotate(coin.rotationAngle, centerX, centerY);
+
+                        Rect drawRect = new Rect(
+                                coin.position.left,
+                                coin.position.top + coin.yOffset,
+                                coin.position.right,
+                                coin.position.bottom + coin.yOffset
+                        );
+
+                        canvas.drawBitmap(coinImage, null, drawRect, coinPaint);
+
+                        canvas.restore();
+
+                        coin.update();
+                    }
+                }
+
 
                 canvas.restore();
             }
@@ -746,29 +779,17 @@ public class GameView extends SurfaceView implements Runnable {
             //Drawing clock
             canvas.drawText(timeText, 50, 100, textPaint);
 
-            for (Coin coin : coins) {
-                if (!coin.isVisible) {
-                    continue;
-                }
+            //Coins
 
-                canvas.save();
-                coinPaint.setAlpha(coin.alpha);
 
-                float centerX = coin.position.centerX();
-                float centerY = coin.position.centerY() + coin.yOffset;
-                canvas.rotate(coin.rotationAngle, centerX, centerY);
 
-                Rect drawingRect = new Rect(
-                        coin.position.left,
-                        coin.position.top + coin.yOffset,
-                        coin.position.right,
-                        coin.position.bottom + coin.yOffset
-                );
-
-                canvas.drawBitmap(coinImage, null, drawingRect, coinPaint);
-                canvas.restore();
-
-                coin.update();
+            //Score
+            if (coinImage != null) {
+                int xPos = getWidth() - 700;
+                int yPos = getHeight()-800;
+                canvas.drawBitmap(coinImage, null, new Rect(xPos, yPos - 60, xPos + 60, yPos), null);
+                String scoreText = coinsCollected + " / " + totalCoinsInLevel;
+                canvas.drawText(scoreText, xPos + 100, yPos, textPaint);
             }
 
             //Drawing the black out
@@ -905,6 +926,12 @@ public class GameView extends SurfaceView implements Runnable {
                 savedCheckpointX=playerX;
                 savedCheckpointY=playerY;
                 timeLeftMillis = 120000;
+                rotationAngle = 0;
+                yOffset = 0;
+                alpha = 255;
+                isCollected = false;
+                isVisible = true;
+
                 dialog.dismiss();
 
 
@@ -1005,6 +1032,19 @@ public class GameView extends SurfaceView implements Runnable {
                         }
                     }
 
+                    coins.clear();
+                    if (data.coins != null) {
+                        for (GameLevel.RectData cd : data.coins) {
+                            Coin newCoin = new Coin();
+                            newCoin.position = new Rect(cd.left, cd.top, cd.right, cd.bottom);
+                            newCoin.isVisible = true;
+                            newCoin.isCollected = false;
+                            newCoin.alpha = 255;
+                            coins.add(newCoin);
+                        }
+                    }
+                    totalCoinsInLevel = coins.size();
+
                     checkpointActivated.clear();
                     for (Rect r : checkpoints) checkpointActivated.add(false);
 
@@ -1048,38 +1088,39 @@ public class GameView extends SurfaceView implements Runnable {
         }
     }
 
-    class Coin {
-        Rect position;
-        float rotationAngle = 0;
-        int yOffset = 0;
-        int alpha = 255;
-        boolean isCollected = false;
-        boolean isVisible = true;
 
-        void update() {
-            if (isCollected && isVisible) {
-                rotationAngle += 15;
-                yOffset -= 5;
-                alpha -= 10;
+}
+class Coin {
+    Rect position;
+    float rotationAngle = 0;
+    int yOffset = 0;
+    int alpha = 255;
+    boolean isCollected = false;
+    boolean isVisible = true;
 
-                if (alpha <= 0) {
-                    alpha = 0;
-                    isVisible = false;
-                }
+    void update() {
+        if (isCollected && isVisible) {
+            rotationAngle += 15;
+            yOffset -= 5;
+            alpha -= 10;
+
+            if (alpha <= 0) {
+                alpha = 0;
+                isVisible = false;
             }
         }
+    }
 
-        void reset() {
-            rotationAngle = 0;
-            yOffset = 0;
-            alpha = 255;
-            isCollected = false;
-            isVisible = true;
-        }
+    void reset() {
+        rotationAngle = 0;
+        yOffset = 0;
+        alpha = 255;
+        isCollected = false;
+        isVisible = true;
+    }
 
-        boolean isFinished() {
-            return alpha <= 0;
-        }
+    boolean isFinished() {
+        return alpha <= 0;
     }
 }
 
