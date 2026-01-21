@@ -1,9 +1,12 @@
 package com.example.bagrot_work.screens;
 
+import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
+
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -14,6 +17,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.bagrot_work.R;
+import com.example.bagrot_work.utils.SharedPreferencesUtil;
 
 public class LevelsActivity extends BaseActivity implements View.OnClickListener {
 
@@ -37,6 +41,8 @@ public class LevelsActivity extends BaseActivity implements View.OnClickListener
         btnFloat.setOnClickListener(this);
         btnFloat2.setOnClickListener(this);
         btnFloat3.setOnClickListener(this);
+        btnFloat4.setOnClickListener(this);
+
 
         TextView level1_txt,level2_txt,level3_txt,level4_txt,level5_txt;
         level1_txt = findViewById(R.id.tvLevel1);
@@ -46,8 +52,8 @@ public class LevelsActivity extends BaseActivity implements View.OnClickListener
         level5_txt = findViewById(R.id.tvLevel5);
 
 
-        startFloatingAnimation(btnFloat, btnFloat2, btnFloat3, btnFloat4, btnFloat5,level1_txt,level2_txt,level3_txt,level4_txt,level5_txt);
-
+        startOneFloatingAnimation(btnFloat, btnFloat3, btnFloat5,level1_txt,level3_txt,level5_txt);
+        startTwoFloatingAnimation(btnFloat2,btnFloat4,level2_txt,level4_txt);
 
 
     }
@@ -69,16 +75,30 @@ public class LevelsActivity extends BaseActivity implements View.OnClickListener
             startActivity(goToLevel3);
 
         }
+        if(v.getId() == R.id.btnLevel4){
+            Intent goToLevel4 = new Intent(LevelsActivity.this, LevelFourActivity.class);
+            startActivity(goToLevel4);
+
+        }
         if(v.getId() == R.id.btnGoHome){
             Intent ReturnHome = new Intent(LevelsActivity.this, Home_page.class);
             startActivity(ReturnHome);
 
         }
     }
-    private void startFloatingAnimation(View... buttons) {
+    private void startOneFloatingAnimation(View... buttons) {
         for (View btn : buttons) {
             ObjectAnimator animator = ObjectAnimator.ofFloat(btn, "translationY", 0f, -30f);
             animator.setDuration(1000);
+            animator.setRepeatMode(ValueAnimator.REVERSE);
+            animator.setRepeatCount(ValueAnimator.INFINITE);
+            animator.start();
+        }
+    }
+    private void startTwoFloatingAnimation(View... buttons) {
+        for (View btn : buttons) {
+            ObjectAnimator animator = ObjectAnimator.ofFloat(btn, "translationY", 0f, -30f);
+            animator.setDuration(2000);
             animator.setRepeatMode(ValueAnimator.REVERSE);
             animator.setRepeatCount(ValueAnimator.INFINITE);
             animator.start();

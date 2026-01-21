@@ -71,9 +71,12 @@ public class GameView extends SurfaceView implements Runnable {
     private Bitmap backgroundImage;
     private Bitmap backgroundImage2;
     private Bitmap backgroundImage3;
+    private Bitmap backgroundImage4;
     private Bitmap scaledBackground;
     private Bitmap scaledBackground2;
     private Bitmap scaledBackground3;
+    private Bitmap scaledBackground4;
+
     private Bitmap characterImage;
     private Bitmap spikeimage;
     private int floor_color1;
@@ -158,7 +161,7 @@ public class GameView extends SurfaceView implements Runnable {
     private int blackAlpha = 0;
 
     //Moving platforms
-    private List<MovingPlatform> movingPlatforms = new ArrayList<>();
+    private List<MovingObstecle> movingPlatforms = new ArrayList<>();
 
 
     //checking what level your in
@@ -175,6 +178,12 @@ public class GameView extends SurfaceView implements Runnable {
     private int alpha = 255;
     private boolean isCollected = false;
     private boolean isVisible = true;
+
+    //Moving Spikes
+    private List<MovingObstecle> movingSpikes = new ArrayList<>();
+    private Bitmap movingSpikeImg;
+    float rotationAngleSpike = 0;
+    float rotationSpeed = 3f;
 
 
 
@@ -241,7 +250,7 @@ public class GameView extends SurfaceView implements Runnable {
         super.onSizeChanged(w, h, oldw, oldh);
         loadBitmaps();
         createPlatforms();
-        scaleBackgroundIfNeeded();
+        scaleBackground();
     }
 
     private void loadBitmaps() {
@@ -289,11 +298,17 @@ public class GameView extends SurfaceView implements Runnable {
             coinImage = BitmapFactory.decodeResource(getResources(), R.drawable.coin);
 
         }
+        if(movingSpikeImg==null){
+            movingSpikeImg = BitmapFactory.decodeResource(getResources(), R.drawable.moving_spike);
+        }
+        if(backgroundImage4==null){
+            backgroundImage4 = BitmapFactory.decodeResource(getResources(), R.drawable.background_castle);
+        }
 
     }
 
-    private void scaleBackgroundIfNeeded() {
-        if (backgroundImage == null || backgroundImage2==null) return;
+    private void scaleBackground() {
+        if (backgroundImage == null || backgroundImage2==null || backgroundImage3==null ) return;
 
         if (scaledBackground == null && getWidth() > 0 && getHeight() > 0 || scaledBackground2 == null && getWidth() > 0 && getHeight() > 0 || scaledBackground3 == null && getWidth() > 0 && getHeight() > 0) {
             int newHeight = getHeight()+150;
@@ -301,6 +316,8 @@ public class GameView extends SurfaceView implements Runnable {
             scaledBackground = Bitmap.createScaledBitmap(backgroundImage, newWidth, newHeight, false);
             scaledBackground2 = Bitmap.createScaledBitmap(backgroundImage2, newWidth, newHeight, false);
             scaledBackground3 = Bitmap.createScaledBitmap(backgroundImage3, newWidth, newHeight, false);
+            scaledBackground4 = Bitmap.createScaledBitmap(backgroundImage4, newWidth, newHeight, false);
+
         }
     }
 
@@ -429,7 +446,7 @@ public class GameView extends SurfaceView implements Runnable {
                 }
 
                 // Checking moving platforms
-                for (MovingPlatform mp : movingPlatforms) {
+                for (MovingObstecle mp : movingPlatforms) {
                     mp.update();
 
                     playerRect.set((int)playerX + 20, (int)playerY + 20, (int)(playerX + playerSize) - 20, (int)(playerY + playerSize));
@@ -467,6 +484,17 @@ public class GameView extends SurfaceView implements Runnable {
                     }
                 }
 
+                //moving spikes
+                playerRect.set((int)playerX + 20, (int)playerY + 20, (int)(playerX + playerSize) - 20, (int)(playerY + playerSize));
+
+                for (MovingObstecle ms : movingSpikes) {
+                    ms.update();
+
+                    if (Rect.intersects(playerRect, ms.rect)) {
+                        triggerDeath();
+                        break;
+                    }
+                }
 
                 isJumping = !onGround;
 
@@ -608,6 +636,9 @@ public class GameView extends SurfaceView implements Runnable {
             else if (scaledBackground3 != null && currentLevel==3) {
                 canvas.drawBitmap(scaledBackground3, -backgroundscroll, -150, paint);
             }
+            else if (scaledBackground4 != null && currentLevel==4) {
+                canvas.drawBitmap(scaledBackground4, -backgroundscroll, -150, paint);
+            }
             else {
                 canvas.drawColor(Color.BLACK);
             }
@@ -633,6 +664,12 @@ public class GameView extends SurfaceView implements Runnable {
                 canvas.drawRect(worldOffsetX, getHeight() - 200, worldOffsetX + getWidth(), getHeight(), paint);
 
             }
+            else if(currentLevel==4){
+                paint.setColor(floor_color2);
+                canvas.drawRect(worldOffsetX, getHeight() - 200, worldOffsetX + getWidth(), getHeight(), paint);
+
+            }
+
             for (Rect spike : spikes) {
                 if (spike.right > worldOffsetX && spike.left < worldOffsetX + getWidth()) {
 
@@ -762,11 +799,28 @@ public class GameView extends SurfaceView implements Runnable {
 
             //Drawing moving platforms
             paint.setColor(Color.BLUE);
-            for (MovingPlatform mp : movingPlatforms) {
+            for (MovingObstecle mp : movingPlatforms) {
                 if (mp.rect.right > worldOffsetX && mp.rect.left < worldOffsetX + getWidth()) {
                     canvas.drawRect(mp.rect, paint);
                 }
             }
+
+            //Drawing moving spikes
+            for (MovingObstecle ms : movingSpikes) {
+                if (ms.rect.right > worldOffsetX && ms.rect.left < worldOffsetX + getWidth()) {
+
+                    canvas.save();
+
+                    float cx = ms.rect.centerX();
+                    float cy = ms.rect.centerY();
+
+                    canvas.rotate(ms.rotationAngle, cx, cy);
+                    canvas.drawBitmap(movingSpikeImg, null, ms.rect, null);
+
+                    canvas.restore();
+                }
+            }
+
 
             //Drawing flag
             for (int i = 0; i < checkpoints.size(); i++) {
@@ -800,7 +854,7 @@ public class GameView extends SurfaceView implements Runnable {
             //Score
             if (coinImage != null) {
                 int xPos = getWidth() - 700;
-                int yPos = getHeight()-800;
+                int yPos = getHeight()-850;
                 canvas.drawBitmap(coinImage, null, new Rect(xPos, yPos - 60, xPos + 60, yPos), null);
                 String scoreText = coinsCollected + " / " + totalCoinsInLevel;
                 canvas.drawText(scoreText, xPos + 100, yPos, textPaint);
@@ -1004,10 +1058,18 @@ public class GameView extends SurfaceView implements Runnable {
 
             movingPlatforms.clear();
             if (data.movingPlatforms != null) {
-                for (GameLevel.MovingPlatformData mpd : data.movingPlatforms) {
-                    movingPlatforms.add(new MovingPlatform(mpd.x, mpd.y, mpd.width, mpd.height, mpd.range, mpd.speed));
+                for (GameLevel.MovingObstecleData mpd : data.movingPlatforms) {
+                    movingPlatforms.add(new MovingObstecle(mpd.x, mpd.y, mpd.width, mpd.height, mpd.range, mpd.speed));
                 }
             }
+
+            movingSpikes.clear();
+            if (data.movingSpikes != null) {
+                for (GameLevel.MovingObstecleData msd : data.movingSpikes) {
+                    movingSpikes.add(new MovingObstecle(msd.x, msd.y, msd.width, msd.height, msd.range, msd.speed));
+                }
+            }
+
 
             checkpointActivated.clear();
             for (Rect r : checkpoints) checkpointActivated.add(false);
@@ -1041,8 +1103,14 @@ public class GameView extends SurfaceView implements Runnable {
 
                     movingPlatforms.clear();
                     if (data.movingPlatforms != null) {
-                        for (GameLevel.MovingPlatformData mpd : data.movingPlatforms) {
-                            movingPlatforms.add(new MovingPlatform(mpd.x, mpd.y, mpd.width, mpd.height, mpd.range, mpd.speed));
+                        for (GameLevel.MovingObstecleData mpd : data.movingPlatforms) {
+                            movingPlatforms.add(new MovingObstecle(mpd.x, mpd.y, mpd.width, mpd.height, mpd.range, mpd.speed));
+                        }
+                    }
+                    movingSpikes.clear();
+                    if (data.movingSpikes != null) {
+                        for (GameLevel.MovingObstecleData msd : data.movingSpikes) {
+                            movingPlatforms.add(new MovingObstecle(msd.x, msd.y, msd.width, msd.height, msd.range, msd.speed));
                         }
                     }
 
@@ -1075,34 +1143,50 @@ public class GameView extends SurfaceView implements Runnable {
         });
     }
 
-    private class MovingPlatform {
+    private class MovingObstecle {
         Rect rect;
+        float currentX;
         float startX, endX;
         float speed;
+        int width, height;
         boolean movingForward = true;
+        public float rotationAngle = 0f;
+        public float rotationSpeed = 5f;
 
-        public MovingPlatform(int x, int y, int width, int height, int range, float speed) {
-            this.rect = new Rect(x, y, x + width, y + height);
+        public MovingObstecle(int x, int y, int width, int height, int range, float speed) {
             this.startX = x;
+            this.currentX = x;
             this.endX = x + range;
             this.speed = speed;
+            this.width = width;
+            this.height = height;
+            this.rect = new Rect(x, y, x + width, y + height);
         }
 
         public void update() {
             if (movingForward) {
-                rect.offset((int)speed, 0);
-                if (rect.left >= endX)
+                currentX += speed;
+                if (currentX >= endX) {
+                    currentX = endX;
                     movingForward = false;
-            }
-            else {
-                rect.offset((int)-speed, 0);
-                if (rect.left <= startX)
+                }
+            } else {
+                currentX -= speed;
+                if (currentX <= startX) {
+                    currentX = startX;
                     movingForward = true;
+                }
             }
+            rotationAngle += rotationSpeed;
+            if (rotationAngle >= 360){
+                rotationAngle = 0;
+            }
+
+            rect.left = (int) currentX;
+            rect.right = (int) (currentX + width);
         }
+
     }
-
-
 }
 class Coin {
     Rect position;
