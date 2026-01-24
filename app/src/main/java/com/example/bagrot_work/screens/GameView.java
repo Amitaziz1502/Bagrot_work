@@ -72,16 +72,20 @@ public class GameView extends SurfaceView implements Runnable {
     private Bitmap backgroundImage2;
     private Bitmap backgroundImage3;
     private Bitmap backgroundImage4;
+    private Bitmap backgroundImage5;
     private Bitmap scaledBackground;
     private Bitmap scaledBackground2;
     private Bitmap scaledBackground3;
     private Bitmap scaledBackground4;
+    private Bitmap scaledBackground5;
+
 
     private Bitmap characterImage;
     private Bitmap spikeimage;
     private int floor_color1;
     private int floor_color2;
     private int floor_color3;
+    private int floor_color4;
     private int main_color;
 
     //Spikes settings
@@ -215,6 +219,7 @@ public class GameView extends SurfaceView implements Runnable {
         floor_color1 = Color.parseColor("#0F2A55");
         floor_color2 = Color.parseColor("#122D28");
         floor_color3 = Color.parseColor("#ECB681");
+        floor_color4= Color.parseColor("#132952");
         main_color =Color.parseColor("#353C6F");// Setting the color one time
 
         //Clock
@@ -304,11 +309,14 @@ public class GameView extends SurfaceView implements Runnable {
         if(backgroundImage4==null){
             backgroundImage4 = BitmapFactory.decodeResource(getResources(), R.drawable.background_castle);
         }
+        if(backgroundImage5==null){
+            backgroundImage5 = BitmapFactory.decodeResource(getResources(), R.drawable.backgroundingfive);
+        }
 
     }
 
     private void scaleBackground() {
-        if (backgroundImage == null || backgroundImage2==null || backgroundImage3==null ) return;
+        if (backgroundImage == null || backgroundImage2==null || backgroundImage3==null || backgroundImage4==null|| backgroundImage5==null) return;
 
         if (scaledBackground == null && getWidth() > 0 && getHeight() > 0 || scaledBackground2 == null && getWidth() > 0 && getHeight() > 0 || scaledBackground3 == null && getWidth() > 0 && getHeight() > 0) {
             int newHeight = getHeight()+150;
@@ -317,6 +325,7 @@ public class GameView extends SurfaceView implements Runnable {
             scaledBackground2 = Bitmap.createScaledBitmap(backgroundImage2, newWidth, newHeight, false);
             scaledBackground3 = Bitmap.createScaledBitmap(backgroundImage3, newWidth, newHeight, false);
             scaledBackground4 = Bitmap.createScaledBitmap(backgroundImage4, newWidth, newHeight, false);
+            scaledBackground5 = Bitmap.createScaledBitmap(backgroundImage5, newWidth, newHeight, false);
 
         }
     }
@@ -382,12 +391,20 @@ public class GameView extends SurfaceView implements Runnable {
                             }
                             break;
                         case 3:
-                            Intent goToHome = new Intent(getContext(), LevelsActivity.class);
-                            getContext().startActivity(goToHome);
+                            Intent goToLevelFour = new Intent(getContext(), LevelFourActivity.class);
+                            getContext().startActivity(goToLevelFour);
                             if (getContext() instanceof Activity) {
                                 ((Activity) getContext()).finish();
                             }
                             break;
+                        case 4:
+                            Intent goToLevelFive = new Intent(getContext(), LevelFiveActivity.class);
+                            getContext().startActivity(goToLevelFive);
+                            if (getContext() instanceof Activity) {
+                                ((Activity) getContext()).finish();
+                            }
+                            break;
+
                     }
 
                 }
@@ -405,11 +422,21 @@ public class GameView extends SurfaceView implements Runnable {
                 boolean onGround = false;
 
                 // Floor check
-                float groundY = getHeight() - 200 - playerSize + 15;
-                if (playerY >= groundY) {
-                    playerY = groundY;
-                    velocityY = 0;
-                    onGround = true;
+                if(currentLevel==5){
+                    float groundY = getHeight() - 100 - playerSize + 15;
+                    if (playerY >= groundY) {
+                        playerY = groundY;
+                        velocityY = 0;
+                        onGround = true;
+                    }
+                }
+                else{
+                    float groundY = getHeight() - 200 - playerSize + 15;
+                    if (playerY >= groundY) {
+                        playerY = groundY;
+                        velocityY = 0;
+                        onGround = true;
+                    }
                 }
 
                 // Platform check
@@ -418,27 +445,26 @@ public class GameView extends SurfaceView implements Runnable {
 
                     if (Rect.intersects(playerRect, platform)) {
 
-                        float platformCenterY = (platform.top + platform.bottom) / 2f;
-                        float playerCenterY = (playerY + (playerY + playerSize)) / 2f;
-
-                        // Bottom
-                        if (playerCenterY > platformCenterY) {
-                            if (velocityY < 0) {
-                                playerY = platform.bottom;
-                                velocityY = 0;
-                            }
-                        }
-                        // Top
-                        else if (velocityY >= 0 && (playerY + playerSize) <= (platform.top + velocityY + 15)) {
+                        //checking top
+                        if (velocityY >= 0 && (playerY + playerSize) <= (platform.top + velocityY + 20)) {
                             playerY = platform.top - playerSize;
                             velocityY = 0;
                             onGround = true;
                         }
-                        // sides
+
+                        //checking bottom
+                        else if (velocityY < 0 && playerY + 20 > platform.bottom + velocityY) {
+                            playerY = platform.bottom;
+                            velocityY = 0;
+                        }
+
                         else {
+                            // left side
                             if (playerX + playerSize > platform.left && playerX < platform.left) {
                                 playerX = platform.left - playerSize;
-                            } else if (playerX < platform.right && playerX + playerSize > platform.right) {
+                            }
+                            //right side
+                            else if (playerX < platform.right && playerX + playerSize > platform.right) {
                                 playerX = platform.right;
                             }
                         }
@@ -453,16 +479,27 @@ public class GameView extends SurfaceView implements Runnable {
                     if (Rect.intersects(playerRect, mp.rect)) {
 
                         // Landing on top of the platform
+                        // Landing on top of the platform
                         if (velocityY >= 0 && (playerY + playerSize) <= (mp.rect.top + velocityY + 15)) {
-                            playerY = mp.rect.top - playerSize ;
+                            playerY = mp.rect.top - playerSize;
                             velocityY = 0;
                             onGround = true;
 
                             // Moving the player with the platform
-                            if (mp.movingForward) {
-                                playerX += mp.speed;
-                            } else {
-                                playerX -= mp.speed;
+                            if (mp.endX > mp.startX) {
+                                if (mp.movingForward) {
+                                    playerX += mp.speed;
+                                } else {
+                                    playerX -= mp.speed;
+                                }
+                            }
+
+                            if (mp.endY != mp.startY) {
+                                if (mp.movingUp) {
+                                    playerY -= mp.speed;
+                                } else {
+                                    playerY += mp.speed;
+                                }
                             }
                         }
 
@@ -487,10 +524,23 @@ public class GameView extends SurfaceView implements Runnable {
                 //moving spikes
                 playerRect.set((int)playerX + 20, (int)playerY + 20, (int)(playerX + playerSize) - 20, (int)(playerY + playerSize));
 
+                // moving spikes round check
                 for (MovingObstecle ms : movingSpikes) {
                     ms.update();
 
-                    if (Rect.intersects(playerRect, ms.rect)) {
+                    float playerCenterX = playerX + playerSize / 2f;
+                    float playerCenterY = playerY + playerSize / 2f;
+
+                    float spikeCenterX = ms.rect.centerX();
+                    float spikeCenterY = ms.rect.centerY();
+
+                    float dx = playerCenterX - spikeCenterX;
+                    float dy = playerCenterY - spikeCenterY;
+                    double distance = Math.sqrt(dx * dx + dy * dy);
+
+                    float collisionRadius = (ms.width / 2f);
+
+                    if (distance < collisionRadius) {
                         triggerDeath();
                         break;
                     }
@@ -605,7 +655,12 @@ public class GameView extends SurfaceView implements Runnable {
         isDead = false;
         particles.clear(); // Just in case removing the particles
 
-
+        for (MovingObstecle mp : movingPlatforms) {
+            mp.reset();
+        }
+        for (MovingObstecle ms : movingSpikes) {
+            ms.reset();
+        }
 
         //Resetting clock
         gameStarted = false;
@@ -639,6 +694,9 @@ public class GameView extends SurfaceView implements Runnable {
             else if (scaledBackground4 != null && currentLevel==4) {
                 canvas.drawBitmap(scaledBackground4, -backgroundscroll, -150, paint);
             }
+            else if (scaledBackground4 != null && currentLevel==5) {
+                canvas.drawBitmap(scaledBackground5, -backgroundscroll, -150, paint);
+            }
             else {
                 canvas.drawColor(Color.BLACK);
             }
@@ -668,6 +726,11 @@ public class GameView extends SurfaceView implements Runnable {
                 paint.setColor(floor_color2);
                 canvas.drawRect(worldOffsetX, getHeight() - 200, worldOffsetX + getWidth(), getHeight(), paint);
 
+            }
+            else if(currentLevel==5){
+                paint.setColor(floor_color4);
+                canvas.drawRect(worldOffsetX, getHeight() - 100, worldOffsetX + getWidth(), getHeight(), paint);
+                playerSize = 125;
             }
 
             for (Rect spike : spikes) {
@@ -807,14 +870,17 @@ public class GameView extends SurfaceView implements Runnable {
 
             //Drawing moving spikes
             for (MovingObstecle ms : movingSpikes) {
-                if (ms.rect.right > worldOffsetX && ms.rect.left < worldOffsetX + getWidth()) {
+                boolean shouldDraw = (currentLevel == 5) ||
+                        (ms.rect.right > worldOffsetX && ms.rect.left < worldOffsetX + getWidth());
 
+                if (shouldDraw) {
                     canvas.save();
 
                     float cx = ms.rect.centerX();
                     float cy = ms.rect.centerY();
 
                     canvas.rotate(ms.rotationAngle, cx, cy);
+
                     canvas.drawBitmap(movingSpikeImg, null, ms.rect, null);
 
                     canvas.restore();
@@ -999,6 +1065,12 @@ public class GameView extends SurfaceView implements Runnable {
                 alpha = 255;
                 isCollected = false;
                 isVisible = true;
+                for (MovingObstecle mp : movingPlatforms) {
+                    mp.reset();
+                }
+                for (MovingObstecle ms : movingSpikes) {
+                    ms.reset();
+                }
 
                 dialog.dismiss();
 
@@ -1006,13 +1078,10 @@ public class GameView extends SurfaceView implements Runnable {
             });
             Button btnAdd = customView.findViewById(R.id.btnAdd);
             btnAdd.setOnClickListener(v -> {
-                DatabaseService.getInstance().CreateNewLevel(3,getHeight() - 200);
+                DatabaseService.getInstance().CreateNewLevel(4,getHeight() - 200);
 
 
             });
-
-
-
 
             dialog.show();
         });
@@ -1059,14 +1128,13 @@ public class GameView extends SurfaceView implements Runnable {
             movingPlatforms.clear();
             if (data.movingPlatforms != null) {
                 for (GameLevel.MovingObstecleData mpd : data.movingPlatforms) {
-                    movingPlatforms.add(new MovingObstecle(mpd.x, mpd.y, mpd.width, mpd.height, mpd.range, mpd.speed));
-                }
+                    movingPlatforms.add(new MovingObstecle(mpd.x, mpd.y, mpd.width, mpd.height, mpd.rangeX, mpd.rangeY, mpd.speed));                }
             }
 
             movingSpikes.clear();
             if (data.movingSpikes != null) {
                 for (GameLevel.MovingObstecleData msd : data.movingSpikes) {
-                    movingSpikes.add(new MovingObstecle(msd.x, msd.y, msd.width, msd.height, msd.range, msd.speed));
+                    movingSpikes.add(new MovingObstecle(msd.x, msd.y, msd.width, msd.height, msd.rangeX, msd.rangeY, msd.speed));
                 }
             }
 
@@ -1104,13 +1172,12 @@ public class GameView extends SurfaceView implements Runnable {
                     movingPlatforms.clear();
                     if (data.movingPlatforms != null) {
                         for (GameLevel.MovingObstecleData mpd : data.movingPlatforms) {
-                            movingPlatforms.add(new MovingObstecle(mpd.x, mpd.y, mpd.width, mpd.height, mpd.range, mpd.speed));
-                        }
+                            movingPlatforms.add(new MovingObstecle(mpd.x, mpd.y, mpd.width, mpd.height, mpd.rangeX, 0, mpd.speed));                        }
                     }
                     movingSpikes.clear();
                     if (data.movingSpikes != null) {
                         for (GameLevel.MovingObstecleData msd : data.movingSpikes) {
-                            movingPlatforms.add(new MovingObstecle(msd.x, msd.y, msd.width, msd.height, msd.range, msd.speed));
+                            movingPlatforms.add(new MovingObstecle(msd.x, msd.y, msd.width, msd.height, msd.rangeX,0, msd.speed));
                         }
                     }
 
@@ -1145,18 +1212,25 @@ public class GameView extends SurfaceView implements Runnable {
 
     private class MovingObstecle {
         Rect rect;
-        float currentX;
-        float startX, endX;
+        float currentX, startX, endX;
+        float currentY, startY, endY;
         float speed;
         int width, height;
         boolean movingForward = true;
+        boolean movingUp = true;
+
         public float rotationAngle = 0f;
         public float rotationSpeed = 5f;
 
-        public MovingObstecle(int x, int y, int width, int height, int range, float speed) {
+        public MovingObstecle(int x, int y, int width, int height, int rangeX, int rangeY, float speed) {
             this.startX = x;
             this.currentX = x;
-            this.endX = x + range;
+            this.endX = x + rangeX;
+
+            this.startY = y;
+            this.currentY = y;
+            this.endY = y - rangeY;
+
             this.speed = speed;
             this.width = width;
             this.height = height;
@@ -1164,30 +1238,46 @@ public class GameView extends SurfaceView implements Runnable {
         }
 
         public void update() {
-            if (movingForward) {
-                currentX += speed;
-                if (currentX >= endX) {
-                    currentX = endX;
-                    movingForward = false;
-                }
-            } else {
-                currentX -= speed;
-                if (currentX <= startX) {
-                    currentX = startX;
-                    movingForward = true;
+            if (endX > startX) {
+                if (movingForward) {
+                    currentX += speed;
+                    if (currentX >= endX) movingForward = false;
+                } else {
+                    currentX -= speed;
+                    if (currentX <= startX) movingForward = true;
                 }
             }
-            rotationAngle += rotationSpeed;
-            if (rotationAngle >= 360){
-                rotationAngle = 0;
+
+            if (startY != endY) {
+                if (movingUp) {
+                    currentY -= speed;
+                    if (currentY <= endY) movingUp = false;
+                } else {
+                    currentY += speed;
+                    if (currentY >= startY) movingUp = true;
+                }
             }
+
+            rotationAngle = (rotationAngle + rotationSpeed) % 360;
 
             rect.left = (int) currentX;
+            rect.top = (int) currentY;
             rect.right = (int) (currentX + width);
+            rect.bottom = (int) (currentY + height);
         }
+        public void reset() {
+            this.currentX = startX;
+            this.currentY = startY;
+            this.movingForward = true;
+            this.movingUp = true;
+            this.rotationAngle = 0f;
 
+            rect.left = (int) currentX;
+            rect.top = (int) currentY;
+            rect.right = (int) (currentX + width);
+            rect.bottom = (int) (currentY + height);
+        }
     }
-}
 class Coin {
     Rect position;
     float rotationAngle = 0;
@@ -1220,5 +1310,5 @@ class Coin {
     boolean isFinished() {
         return alpha <= 0;
     }
-}
+}}
 
