@@ -404,6 +404,13 @@ public class GameView extends SurfaceView implements Runnable {
                                 ((Activity) getContext()).finish();
                             }
                             break;
+                        case 5:
+                            Intent goToLevelHome = new Intent(getContext(), LevelsActivity.class);
+                            getContext().startActivity(goToLevelHome);
+                            if (getContext() instanceof Activity) {
+                                ((Activity) getContext()).finish();
+                            }
+                            break;
 
                     }
 
@@ -481,6 +488,7 @@ public class GameView extends SurfaceView implements Runnable {
                         // Landing on top of the platform
                         // Landing on top of the platform
                         if (velocityY >= 0 && (playerY + playerSize) <= (mp.rect.top + velocityY + 15)) {
+                            mp.isTriggered = true;
                             playerY = mp.rect.top - playerSize;
                             velocityY = 0;
                             onGround = true;
@@ -558,20 +566,16 @@ public class GameView extends SurfaceView implements Runnable {
                     }
                 }
 
-                //Coin check
+                // Coin collision and update
                 for (Coin coin : coins) {
                     if (coin.isVisible && !coin.isCollected) {
-
-                        if (playerX + playerSize > coin.position.left - 100 && playerX < coin.position.right + 100) {
-
-                            if (Rect.intersects(playerRect, coin.position)) {
-                                coin.isCollected = true;
-                                coinsCollected++;
-                            }
+                        if (Rect.intersects(playerRect, coin.position)) {
+                            coin.isCollected = true;
+                            coinsCollected++;
                         }
                     }
+                    coin.update();
                 }
-
 
                 // Checkpoint check
                 for (int i = 0; i < checkpoints.size(); i++) {
@@ -754,6 +758,30 @@ public class GameView extends SurfaceView implements Runnable {
             }
             paint.setAlpha(255);
 
+            if (coins != null && coinImage != null) {
+                for (Coin coin : coins) {
+                    if (!coin.isVisible || coin.position.right < worldOffsetX || coin.position.left > worldOffsetX + getWidth()) continue;
+
+                    canvas.save();
+                    coinPaint.setAlpha(coin.alpha);
+
+                    float centerX = coin.position.centerX();
+                    float centerY = coin.position.centerY() + coin.yOffset;
+
+                    canvas.rotate(coin.rotationAngle, centerX, centerY);
+
+                    Rect drawRect = new Rect(
+                            coin.position.left,
+                            (int)(coin.position.top + coin.yOffset),
+                            coin.position.right,
+                            (int)(coin.position.bottom + coin.yOffset)
+                    );
+
+                    canvas.drawBitmap(coinImage, null, drawRect, coinPaint);
+                    canvas.restore();
+                }
+                coinPaint.setAlpha(255);
+            }
 
             // Drawing player animation (both sides)
             if (!isDead) {
@@ -819,34 +847,7 @@ public class GameView extends SurfaceView implements Runnable {
                     canvas.drawBitmap(currentSheet, spriteSrcRect, spriteDstRect, paint);
                 }
 
-                if (coins != null && coinImage != null) {
-                    for (Coin coin : coins) {
 
-                        if (!coin.isVisible) continue;
-
-                        canvas.save();
-
-                        coinPaint.setAlpha(coin.alpha);
-
-                        float centerX = coin.position.centerX();
-                        float centerY = coin.position.centerY() + coin.yOffset;
-
-                        canvas.rotate(coin.rotationAngle, centerX, centerY);
-
-                        Rect drawRect = new Rect(
-                                coin.position.left,
-                                coin.position.top + coin.yOffset,
-                                coin.position.right,
-                                coin.position.bottom + coin.yOffset
-                        );
-
-                        canvas.drawBitmap(coinImage, null, drawRect, coinPaint);
-
-                        canvas.restore();
-
-                        coin.update();
-                    }
-                }
 
 
                 canvas.restore();
@@ -911,10 +912,9 @@ public class GameView extends SurfaceView implements Runnable {
             paint.setColor(main_color);
             canvas.restore();
             //Drawing clock
-            canvas.drawText(timeText, 50, 100, textPaint);
-
-            //Coins
-
+            if(currentLevel!=5){
+                canvas.drawText(timeText, 50, 100, textPaint);
+            }
 
 
             //Score
@@ -1078,7 +1078,15 @@ public class GameView extends SurfaceView implements Runnable {
             });
             Button btnAdd = customView.findViewById(R.id.btnAdd);
             btnAdd.setOnClickListener(v -> {
+                DatabaseService.getInstance().CreateNewLevel(1,getHeight() - 200);
+                DatabaseService.getInstance().CreateNewLevel(2,getHeight() - 200);
+                DatabaseService.getInstance().CreateNewLevel(3,getHeight() - 200);
                 DatabaseService.getInstance().CreateNewLevel(4,getHeight() - 200);
+                DatabaseService.getInstance().CreateNewLevel(5,getHeight() - 100);
+
+
+
+
 
 
             });
@@ -1128,16 +1136,15 @@ public class GameView extends SurfaceView implements Runnable {
             movingPlatforms.clear();
             if (data.movingPlatforms != null) {
                 for (GameLevel.MovingObstecleData mpd : data.movingPlatforms) {
-                    movingPlatforms.add(new MovingObstecle(mpd.x, mpd.y, mpd.width, mpd.height, mpd.rangeX, mpd.rangeY, mpd.speed));                }
+                    movingPlatforms.add(new MovingObstecle(mpd.x, mpd.y, mpd.width, mpd.height, mpd.rangeX, mpd.rangeY, mpd.speed,mpd.isTriggerBased));                }
             }
 
             movingSpikes.clear();
             if (data.movingSpikes != null) {
                 for (GameLevel.MovingObstecleData msd : data.movingSpikes) {
-                    movingSpikes.add(new MovingObstecle(msd.x, msd.y, msd.width, msd.height, msd.rangeX, msd.rangeY, msd.speed));
+                    movingSpikes.add(new MovingObstecle(msd.x, msd.y, msd.width, msd.height, msd.rangeX, msd.rangeY, msd.speed,msd.isTriggerBased));
                 }
             }
-
 
             checkpointActivated.clear();
             for (Rect r : checkpoints) checkpointActivated.add(false);
@@ -1152,14 +1159,17 @@ public class GameView extends SurfaceView implements Runnable {
                 GameLevel data = snapshot.getValue(GameLevel.class);
                 if (data != null) {
                     platforms.clear();
-                    for (GameLevel.RectData rd : data.platforms) platforms.add(rd.toRect());
+                    for (GameLevel.RectData rd : data.platforms)
+                        platforms.add(rd.toRect());
 
                     spikes.clear();
-                    for (GameLevel.RectData sd : data.spikes) spikes.add(sd.toRect());
+                    for (GameLevel.RectData sd : data.spikes)
+                        spikes.add(sd.toRect());
 
                     checkpoints.clear();
                     if (data.checkpoints != null) {
-                        for (GameLevel.RectData cd : data.checkpoints) checkpoints.add(cd.toRect());
+                        for (GameLevel.RectData cd : data.checkpoints)
+                            checkpoints.add(cd.toRect());
                     }
 
                     floatingTexts.clear();
@@ -1172,27 +1182,26 @@ public class GameView extends SurfaceView implements Runnable {
                     movingPlatforms.clear();
                     if (data.movingPlatforms != null) {
                         for (GameLevel.MovingObstecleData mpd : data.movingPlatforms) {
-                            movingPlatforms.add(new MovingObstecle(mpd.x, mpd.y, mpd.width, mpd.height, mpd.rangeX, 0, mpd.speed));                        }
+                            // הוספת mpd.isTriggerBased בסוף
+                            movingPlatforms.add(new MovingObstecle(mpd.x, mpd.y, mpd.width, mpd.height,
+                                    mpd.rangeX, mpd.rangeY, mpd.speed, mpd.isTriggerBased));
+                        }
                     }
                     movingSpikes.clear();
                     if (data.movingSpikes != null) {
                         for (GameLevel.MovingObstecleData msd : data.movingSpikes) {
-                            movingPlatforms.add(new MovingObstecle(msd.x, msd.y, msd.width, msd.height, msd.rangeX,0, msd.speed));
+                            movingPlatforms.add(new MovingObstecle(msd.x, msd.y, msd.width, msd.height, msd.rangeX,0, msd.speed,msd.isTriggerBased));
                         }
                     }
 
                     coins.clear();
                     if (data.coins != null) {
-                        for (GameLevel.RectData cd : data.coins) {
-                            Coin newCoin = new Coin();
-                            newCoin.position = new Rect(cd.left, cd.top, cd.right, cd.bottom);
-                            newCoin.isVisible = true;
-                            newCoin.isCollected = false;
-                            newCoin.alpha = 255;
-                            coins.add(newCoin);
+                        for (GameLevel.RectData cr : data.coins) {
+                            coins.add(new Coin(cr.toRect()));
                         }
                     }
                     totalCoinsInLevel = coins.size();
+                    coinsCollected = 0;
 
                     checkpointActivated.clear();
                     for (Rect r : checkpoints) checkpointActivated.add(false);
@@ -1218,14 +1227,20 @@ public class GameView extends SurfaceView implements Runnable {
         int width, height;
         boolean movingForward = true;
         boolean movingUp = true;
+        boolean isTriggerBased = false;
+        boolean isTriggered = false;
 
         public float rotationAngle = 0f;
         public float rotationSpeed = 5f;
 
-        public MovingObstecle(int x, int y, int width, int height, int rangeX, int rangeY, float speed) {
+        public MovingObstecle(int x, int y, int width, int height, int rangeX, int rangeY, float speed, boolean isTriggerBased) {
             this.startX = x;
             this.currentX = x;
             this.endX = x + rangeX;
+            this.isTriggerBased = isTriggerBased;
+            if (!isTriggerBased) {
+                this.isTriggered = true;
+            }
 
             this.startY = y;
             this.currentY = y;
@@ -1238,6 +1253,8 @@ public class GameView extends SurfaceView implements Runnable {
         }
 
         public void update() {
+            if (!isTriggered) return;
+
             if (endX > startX) {
                 if (movingForward) {
                     currentX += speed;
@@ -1272,43 +1289,51 @@ public class GameView extends SurfaceView implements Runnable {
             this.movingUp = true;
             this.rotationAngle = 0f;
 
+            if (isTriggerBased) {
+                isTriggered = false;
+            } else {
+                isTriggered = true;
+            }
+
             rect.left = (int) currentX;
             rect.top = (int) currentY;
             rect.right = (int) (currentX + width);
             rect.bottom = (int) (currentY + height);
+
         }
     }
-class Coin {
-    Rect position;
-    float rotationAngle = 0;
-    int yOffset = 0;
-    int alpha = 255;
-    boolean isCollected = false;
-    boolean isVisible = true;
+    class Coin {
+        Rect position;
+        float rotationAngle = 0;
+        float yOffset = 0;
+        int alpha = 255;
+        boolean isCollected = false;
+        boolean isVisible = true;
 
-    void update() {
-        if (isCollected && isVisible) {
-            rotationAngle += 15;
-            yOffset -= 5;
-            alpha -= 10;
+        public Coin(Rect position) {
+            this.position = position;
+        }
 
-            if (alpha <= 0) {
-                alpha = 0;
-                isVisible = false;
+        void update() {
+            if (isCollected && isVisible) {
+                rotationAngle += 15;
+                yOffset -= 5;
+                alpha -= 10;
+
+                if (alpha <= 0) {
+                    alpha = 0;
+                    isVisible = false;
+                }
             }
         }
-    }
 
-    void reset() {
-        rotationAngle = 0;
-        yOffset = 0;
-        alpha = 255;
-        isCollected = false;
-        isVisible = true;
+        void reset() {
+            rotationAngle = 0;
+            yOffset = 0;
+            alpha = 255;
+            isCollected = false;
+            isVisible = true;
+        }
     }
-
-    boolean isFinished() {
-        return alpha <= 0;
-    }
-}}
+}
 

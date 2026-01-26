@@ -51,10 +51,11 @@ public class GameLevel {
     public static class MovingObstecleData {
         public int x, y, width, height, rangeX, rangeY;
         public float speed;
+        public boolean isTriggerBased;
 
         public MovingObstecleData() {}
 
-        public MovingObstecleData(int x, int y, int width, int height, int rangeX, float speed,int rangeY) {
+        public MovingObstecleData(int x, int y, int width, int height, int rangeX, float speed,int rangeY,boolean isTriggerBased) {
             this.x = x;
             this.y = y;
             this.width = width;
@@ -62,6 +63,7 @@ public class GameLevel {
             this.rangeX = rangeX;
             this.rangeY = rangeY;
             this.speed = speed;
+            this.isTriggerBased=isTriggerBased;
         }
     }
 
@@ -89,8 +91,6 @@ public class GameLevel {
                 level.worldWidth = 14500;
                 level.levelTimeMillis = 120000;
 
-                level.movingPlatforms.add(new MovingObstecleData(400, floorLevel-300 , 300, 50, 0, 6f,300));
-
                 //Texts
                 level.floatingTexts.add(new FloatingTextData("Welcome to my game! ", 400, floorLevel - 500));
                 level.floatingTexts.add(new FloatingTextData("To move u can use the arrows... ", 700, floorLevel - 400));
@@ -116,8 +116,7 @@ public class GameLevel {
                 level.spikes.add(new RectData(7300, floorLevel - 100, 7350, floorLevel));
                 level.spikes.add(new RectData(10000, floorLevel - 100, 10100, floorLevel));
 
-                //coins
-                level.coins.add(new RectData(400, floorLevel - 100, 500, floorLevel));
+
 
                 //Checkpoint
                 level.checkpoints.add(new RectData(9000, floorLevel - 200, 9100, floorLevel ));
@@ -128,13 +127,12 @@ public class GameLevel {
                 level.worldWidth = 20000;
                 level.levelTimeMillis = 120000;
 
+                level.coins.add(new RectData(1900, floorLevel-200, 2200, floorLevel-100));
+
                 //Platforms
                 level.platforms.add(new RectData(1900, 600, 2200, 650));
                 level.platforms.add(new RectData(2500, 450, 2800, 500));
                 level.platforms.add(new RectData(3100, 300, 4500, 350));
-
-
-
                 level.platforms.add(new RectData(4500, 300, 4600, 750));
                 level.platforms.add(new RectData(6300, floorLevel - 100, 6400, floorLevel));
                 level.platforms.add(new RectData(6700, floorLevel - 300, 6800, floorLevel));
@@ -206,12 +204,12 @@ public class GameLevel {
 
 
                 //Moving platforms
-                level.movingPlatforms.add(new MovingObstecleData(400, floorLevel - 200, 500, 50, 500,6f, 0));
-                level.movingPlatforms.add(new MovingObstecleData(1600, floorLevel - 300, 300, 50, 700, 6f,0));
-                level.movingPlatforms.add(new MovingObstecleData(4100, floorLevel - 300, 2200, 50, 700, 6f,0));
-                level.movingPlatforms.add(new MovingObstecleData(12000, floorLevel - 400, 2500, 50, 500, 6f,0));
-                level.movingPlatforms.add(new MovingObstecleData(12300, floorLevel - 900, 2000, 50, 700, 8f,0));
-                level.movingPlatforms.add(new MovingObstecleData(12300, floorLevel - 1400, 1000, 50, 700, 10f,0));
+                level.movingPlatforms.add(new MovingObstecleData(400, floorLevel - 200, 500, 50, 500,6f, 0,false));
+                level.movingPlatforms.add(new MovingObstecleData(1600, floorLevel - 300, 300, 50, 700, 6f,0,false));
+                level.movingPlatforms.add(new MovingObstecleData(4100, floorLevel - 300, 2200, 50, 700, 6f,0,false));
+                level.movingPlatforms.add(new MovingObstecleData(12000, floorLevel - 400, 2500, 50, 500, 6f,0,false));
+                level.movingPlatforms.add(new MovingObstecleData(12300, floorLevel - 900, 2000, 50, 700, 8f,0,false));
+                level.movingPlatforms.add(new MovingObstecleData(12300, floorLevel - 1400, 1000, 50, 700, 10f,0,false));
 
 
                 //Platforms
@@ -283,18 +281,18 @@ public class GameLevel {
 
 
                 //movingSpikes
-                level.movingSpikes.add(new MovingObstecleData(1700, floorLevel - 800, 200, 200, 1300, 8f,0));
-                level.movingSpikes.add(new MovingObstecleData(1700, floorLevel - 800, 200, 200, 1300, 12f,0));
-                level.movingSpikes.add(new MovingObstecleData(3200, floorLevel - 800, 200, 200, 1300 ,15f,0));
-                level.movingSpikes.add(new MovingObstecleData(13900, floorLevel - 675, 100, 100, 400, 10f,0));
-                level.movingSpikes.add(new MovingObstecleData(14700, floorLevel - 775, 100, 100, 400, 10f,0));
-                level.movingSpikes.add(new MovingObstecleData(15500, floorLevel - 675, 100, 100, 400, 10f,0));
-                level.movingSpikes.add(new MovingObstecleData(14700, floorLevel - 1250, 100, 100, 1300, 15f,0));
+                level.movingSpikes.add(new MovingObstecleData(1700, floorLevel - 800, 200, 200, 1300, 8f,0,false));
+                level.movingSpikes.add(new MovingObstecleData(1700, floorLevel - 800, 200, 200, 1300, 12f,0,false));
+                level.movingSpikes.add(new MovingObstecleData(3200, floorLevel - 800, 200, 200, 1300 ,15f,0,false));
+                level.movingSpikes.add(new MovingObstecleData(13900, floorLevel - 675, 100, 100, 400, 10f,0,false));
+                level.movingSpikes.add(new MovingObstecleData(14700, floorLevel - 775, 100, 100, 400, 10f,0,false));
+                level.movingSpikes.add(new MovingObstecleData(15500, floorLevel - 675, 100, 100, 400, 10f,0,false));
+                level.movingSpikes.add(new MovingObstecleData(14700, floorLevel - 1250, 100, 100, 1300, 15f,0,false));
 
 
                 //movingPlatforms
-                level.movingPlatforms.add(new MovingObstecleData(4800, floorLevel - 900, 500, 50, 500, 6f,0));
-                level.movingPlatforms.add(new MovingObstecleData(6000, floorLevel - 1000, 2300, 50, 500, 8f,0));
+                level.movingPlatforms.add(new MovingObstecleData(4800, floorLevel - 900, 500, 50, 500, 6f,0,false));
+                level.movingPlatforms.add(new MovingObstecleData(6000, floorLevel - 1000, 2300, 50, 500, 8f,0,false));
 
 
                 //checkpoints
@@ -306,43 +304,75 @@ public class GameLevel {
                 break;
 
             case 5:
-                level.worldWidth = 20000;
-                level.levelTimeMillis = 120000;
+                level.worldWidth = 4500;
+                level.levelTimeMillis = 200000;
 
                 //platforms
-                level.platforms.add(new RectData(700, floorLevel - 3000, 750, floorLevel-100));
-                level.platforms.add(new RectData(2800, floorLevel - 3000, 2850, floorLevel+100));
+                level.platforms.add(new RectData(700, floorLevel - 9000, 750, floorLevel-100));
+                level.platforms.add(new RectData(2800, floorLevel - 8000, 2850, floorLevel+100));
                 level.platforms.add(new RectData(1000, floorLevel , 1200, floorLevel+50));
                 level.platforms.add(new RectData(1400, floorLevel - 100, 1600, floorLevel-50));
                 level.platforms.add(new RectData(1800, floorLevel - 200, 2000, floorLevel-150));
                 level.platforms.add(new RectData(2200, floorLevel - 300, 2400, floorLevel-250));
                 level.platforms.add(new RectData(2000, floorLevel - 800, 2400, floorLevel-750));
                 level.platforms.add(new RectData(2200, floorLevel - 1800, 2800, floorLevel-1750));
+                level.platforms.add(new RectData(2200, floorLevel - 2400, 2500, floorLevel-2350));
+                level.platforms.add(new RectData(1700, floorLevel - 2550, 2000, floorLevel-2500));
+                level.platforms.add(new RectData(1900, floorLevel - 6500, 2800, floorLevel-6450));
+                level.platforms.add(new RectData(2400, floorLevel - 7000, 2500, floorLevel-6950));
+                level.platforms.add(new RectData(2000, floorLevel - 7200, 2100, floorLevel-7150));
+                level.platforms.add(new RectData(1500, floorLevel - 7050, 1600, floorLevel-7000));
+                level.platforms.add(new RectData(1100, floorLevel - 7200, 1200, floorLevel-7150));
+                level.platforms.add(new RectData(1300, floorLevel - 7650, 2800, floorLevel-7600));
+                level.platforms.add(new RectData(2600, floorLevel - 7800, 2800, floorLevel-7750));
+                level.platforms.add(new RectData(2800, floorLevel - 8000, 5500, floorLevel-7950));
+
 
 
                 //spikes
                 level.spikes.add(new RectData(2150, floorLevel - 875, 2225, floorLevel - 800));
+                level.spikes.add(new RectData(900, floorLevel - 3200, 1200, floorLevel - 3100));
+                level.spikes.add(new RectData(1300, floorLevel - 3900, 1600, floorLevel - 3800));
+                level.spikes.add(new RectData(900, floorLevel - 4300, 1100, floorLevel - 4200));
+                level.spikes.add(new RectData(1600, floorLevel - 4300, 1700, floorLevel - 4200));
+                level.spikes.add(new RectData(1200, floorLevel - 4700, 1500, floorLevel - 4600));
+                level.spikes.add(new RectData(1000, floorLevel - 5100, 1100, floorLevel - 5000));
+                level.spikes.add(new RectData(1500, floorLevel - 5100, 1600, floorLevel - 5000));
+                level.spikes.add(new RectData(900, floorLevel - 5600, 1500, floorLevel - 5500));
+                level.spikes.add(new RectData(1100, floorLevel - 6200, 1700, floorLevel - 6100));
+                level.spikes.add(new RectData(2000, floorLevel - 6575, 2025, floorLevel - 6550));
+                level.spikes.add(new RectData(2300, floorLevel - 6575, 2325, floorLevel - 6550));
 
 
                 //Floating text
                 level.floatingTexts.add(new FloatingTextData("hurry up! ", 400, floorLevel -150));
+                level.floatingTexts.add(new FloatingTextData("good job! ", 3000, floorLevel -8400));
+                level.floatingTexts.add(new FloatingTextData("maybe you will find him in the next world? ", 3400, floorLevel -8300));
+
+
 
                 //Moving spikes
-                level.movingSpikes.add(new MovingObstecleData(850, floorLevel+150 , 1950, 1950, 0, 2f,3000));
-                level.movingSpikes.add(new MovingObstecleData(2200, floorLevel - 1900 , 150, 150, 600, 14f,0));
+                level.movingSpikes.add(new MovingObstecleData(-500, floorLevel-300 , 500, 500, 3000, 1f,0,false));
+                level.movingSpikes.add(new MovingObstecleData(850, floorLevel+400 , 1950, 1950, 0, 3f,10000,false));
+                level.movingSpikes.add(new MovingObstecleData(2200, floorLevel - 1900 , 150, 150, 600, 14f,0,false));
+                level.movingSpikes.add(new MovingObstecleData(2100, floorLevel - 2450 , 50, 50, 300, 8f,0,false));
+                level.movingSpikes.add(new MovingObstecleData(1700, floorLevel - 2600 , 50, 50, 300, 8f,0,false));
+                level.movingSpikes.add(new MovingObstecleData(1300, floorLevel - 7750 , 100, 100, 1500, 20f,0,false));
 
 
                 //Moving platform
-                level.movingPlatforms.add(new MovingObstecleData(2600, floorLevel - 350, 200, 50, 0, 6f,300));
-                level.movingPlatforms.add(new MovingObstecleData(1400, floorLevel - 900, 200, 50, 300, 6f,0));
-                level.movingPlatforms.add(new MovingObstecleData(950, floorLevel - 900, 200, 50, 0, 6f,300));
-                level.movingPlatforms.add(new MovingObstecleData(1200, floorLevel - 1200, 200, 50, 200, 4f,300));
-                level.movingPlatforms.add(new MovingObstecleData(1700, floorLevel - 1350, 200, 50, 300, 4f,200));
-                level.movingPlatforms.add(new MovingObstecleData(950, floorLevel - 2000, 200, 50, 0, 6f,300));
+                level.movingPlatforms.add(new MovingObstecleData(2600, floorLevel - 350, 200, 50, 0, 6f,300,false));
+                level.movingPlatforms.add(new MovingObstecleData(1400, floorLevel - 900, 200, 50, 300, 6f,0,false));
+                level.movingPlatforms.add(new MovingObstecleData(950, floorLevel - 900, 200, 50, 0, 6f,300,false));
+                level.movingPlatforms.add(new MovingObstecleData(1200, floorLevel - 1200, 200, 50, 200, 4f,300,false));
+                level.movingPlatforms.add(new MovingObstecleData(1700, floorLevel - 1350, 200, 50, 300, 4f,300,false));
+                level.movingPlatforms.add(new MovingObstecleData(2600, floorLevel - 1950, 200, 50, 0, 6f,300,false));
+                level.movingPlatforms.add(new MovingObstecleData(900, floorLevel - 2550, 800, 50, 0, 8f,4000,true));
+                level.movingPlatforms.add(new MovingObstecleData(2700, floorLevel - 6600, 100, 50, 0, 8f,400,true));
+                level.movingPlatforms.add(new MovingObstecleData(900, floorLevel - 7300, 200, 50, 0, 8f,500,true));
 
 
-
-
+                break;
         }
 
         return level;
