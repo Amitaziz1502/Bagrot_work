@@ -42,7 +42,7 @@
             android:exported="false"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".screens.MainActivity"
+            android:name=".screens.LevelsActivity"
             android:exported="false"
             android:screenOrientation="landscape" />
         <activity
@@ -54,7 +54,7 @@
             android:exported="false"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".screens.LevelsActivity"
+            android:name=".screens.MainActivity"
             android:exported="true"
             android:screenOrientation="landscape">
             <intent-filter>

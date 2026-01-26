@@ -66,6 +66,7 @@ public class User implements Serializable {
         this.password = password;
     }
 
+
     public Integer getCurrentlevel() {
         return currentlevel;
     }
@@ -74,7 +75,9 @@ public class User implements Serializable {
         this.currentlevel = currentlevel;
     }
     public void levelUp() {
-        this.currentlevel++;
+        if (this.currentlevel < 5) {
+            this.currentlevel++;
+        }
     }
     public boolean isAdmin() {
         return isAdmin;
@@ -85,10 +88,11 @@ public class User implements Serializable {
     public PlayerAppearance getAppearance() {
         return appearance;
     }
-
     public void setAppearance(PlayerAppearance appearance) {
         this.appearance = appearance;
     }
+
+
 
 
 }

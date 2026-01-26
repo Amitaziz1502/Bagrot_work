@@ -29,7 +29,6 @@ public class GameLevel {
         this.floatingTexts = new ArrayList<>();
         this.movingPlatforms = new ArrayList<>();
         this.movingSpikes = new ArrayList<>();
-
         this.coins = new ArrayList<>();
 
     }

@@ -15,6 +15,8 @@ import android.graphics.Rect;
 import android.graphics.Shader;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -24,9 +26,13 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.Toast;
+
 import com.example.bagrot_work.R;
 import com.example.bagrot_work.models.GameLevel;
+import com.example.bagrot_work.models.User;
 import com.example.bagrot_work.services.DatabaseService;
+import com.example.bagrot_work.utils.SharedPreferencesUtil;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -101,8 +107,6 @@ public class GameView extends SurfaceView implements Runnable {
 
     //Platform settings
     private List<Rect> platforms = new ArrayList<>();
-
-
 
     //Player Collision with obstacles
     private Rect playerRect = new Rect();
@@ -315,6 +319,12 @@ public class GameView extends SurfaceView implements Runnable {
 
     }
 
+
+    private void updateLevelInFirebase(String userId, int newLevel) {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(userId);
+        ref.child("currentlevel").setValue(newLevel);
+    }
+
     private void scaleBackground() {
         if (backgroundImage == null || backgroundImage2==null || backgroundImage3==null || backgroundImage4==null|| backgroundImage5==null) return;
 
@@ -354,6 +364,29 @@ public class GameView extends SurfaceView implements Runnable {
             }
         }
     }
+    private void isPlayerVerified() {
+
+            User currentUser = SharedPreferencesUtil.getUser(getContext());
+
+            if (currentUser != null) {
+                if (currentLevel == currentUser.getCurrentlevel() && currentLevel < 5) {
+
+                    currentUser.setCurrentlevel(currentLevel + 1);
+                    SharedPreferencesUtil.saveUser(getContext(), currentUser);
+                    DatabaseService.getInstance().updateUser(currentUser, new DatabaseService.DatabaseCallback<Void>() {
+                        @Override
+                        public void onCompleted(Void object) {
+                            Log.d("DatabaseService", "Level updated successfully in Firebase");
+                        }
+
+                        @Override
+                        public void onFailed(Exception e) {
+                            Log.e("DatabaseService", "Failed to update level", e);
+                        }
+                    });
+                }
+            }
+    }
 
     private void update() {
         long time = System.currentTimeMillis();
@@ -363,6 +396,7 @@ public class GameView extends SurfaceView implements Runnable {
             if (playerX >= worldWidth-playerSize) {
                 isLevelEnding = true;
                 gameStarted = false;
+                isPlayerVerified();
             }
 
             if (isLevelEnding) {
@@ -1073,20 +1107,6 @@ public class GameView extends SurfaceView implements Runnable {
                 }
 
                 dialog.dismiss();
-
-
-            });
-            Button btnAdd = customView.findViewById(R.id.btnAdd);
-            btnAdd.setOnClickListener(v -> {
-                DatabaseService.getInstance().CreateNewLevel(1,getHeight() - 200);
-                DatabaseService.getInstance().CreateNewLevel(2,getHeight() - 200);
-                DatabaseService.getInstance().CreateNewLevel(3,getHeight() - 200);
-                DatabaseService.getInstance().CreateNewLevel(4,getHeight() - 200);
-                DatabaseService.getInstance().CreateNewLevel(5,getHeight() - 100);
-
-
-
-
 
 
             });

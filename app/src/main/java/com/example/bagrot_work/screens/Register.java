@@ -108,7 +108,7 @@ public class Register extends BaseActivity implements View.OnClickListener {
         DatabaseService databaseService = DatabaseService.getInstance();
         Log.d(TAG, "registerUser: Registering user...");
         String uid = databaseService.generateUserId();
-        User user = new User(uid, fName, lName, Username,Password, 0, false);
+        User user = new User(uid, fName, lName, Username,Password, 1, false);
         databaseService.checkIfUsernameExists(user.getUsername(), new DatabaseService.DatabaseCallback<Boolean>() {
             @Override
             public void onCompleted(Boolean exist) {

@@ -5,10 +5,12 @@ import static java.security.AccessController.getContext;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import com.example.bagrot_work.R;
@@ -21,11 +23,11 @@ public class LevelOneActivity extends BaseActivity implements View.OnClickListen
     private GameView gameView;
     private ImageButton moveRight, moveLeft, exit;
 
-
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_level_one);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -36,8 +38,8 @@ public class LevelOneActivity extends BaseActivity implements View.OnClickListen
 
         gameView = findViewById(R.id.gameView);
         gameView.setLevel(1);
-        moveRight= findViewById(R.id.move_right);
-        moveLeft= findViewById(R.id.move_left);
+        moveRight = findViewById(R.id.move_right);
+        moveLeft = findViewById(R.id.move_left);
         exit = findViewById(R.id.btn_exit);
         exit.setOnClickListener(this);
 
@@ -58,10 +60,8 @@ public class LevelOneActivity extends BaseActivity implements View.OnClickListen
             }
             return true;
         });
-
-
-
     }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -76,9 +76,8 @@ public class LevelOneActivity extends BaseActivity implements View.OnClickListen
 
     @Override
     public void onClick(View v) {
-        if(v.getId() ==  R.id.btn_exit){
+        if(v.getId() == R.id.btn_exit) {
             gameView.showPausePopup();
-
         }
     }
 
