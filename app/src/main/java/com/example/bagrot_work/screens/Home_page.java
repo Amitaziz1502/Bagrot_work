@@ -58,6 +58,8 @@ public class Home_page extends BaseActivity implements View.OnClickListener {
 
             }
         });
+        btnAdmin = findViewById(R.id.btnAdminPage);
+        btnAdmin.setOnClickListener(this);
 
 
         ImageButton btnToLevelMap = findViewById(R.id.btnToLevelMap);
@@ -92,6 +94,10 @@ public class Home_page extends BaseActivity implements View.OnClickListener {
         if (v.getId() == R.id.btnToLevelMap){
             Intent goToLevelMap = new Intent(Home_page.this, LevelsActivity.class);
             startActivity(goToLevelMap);
+        }
+        if (v.getId() == R.id.btnAdminPage){
+            Intent goToAdmin = new Intent(Home_page.this, AdminActivity.class);
+            startActivity(goToAdmin);
         }
     }
 

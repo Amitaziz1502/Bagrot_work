@@ -1,8 +1,9 @@
 package com.example.bagrot_work.adapters;
-/*
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,21 +16,28 @@ import com.google.android.material.chip.Chip;
 
 import java.util.ArrayList;
 import java.util.List;
-public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder>{
+public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
+
+
     public interface OnUserClickListener {
         void onUserClick(User user);
         void onLongUserClick(User user);
+
+        void onTrashClick(User user);
+        void onManagerClick(User user);
     }
+
     private final List<User> userList;
     private final OnUserClickListener onUserClickListener;
     public UserAdapter(@Nullable final OnUserClickListener onUserClickListener) {
         userList = new ArrayList<>();
         this.onUserClickListener = onUserClickListener;
     }
+
     @NonNull
     @Override
     public UserAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_user, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.itemuser, parent, false);
         return new ViewHolder(view);
     }
 
@@ -38,26 +46,9 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder>{
         User user = userList.get(position);
         if (user == null) return;
 
-        holder.tvName.setText(user.getFirstname());
+        holder.tvFullName.setText(user.getFirstname() + " " + user.getLastname());
         holder.tvUsername.setText(user.getUsername());
-
-        // Set initials
-        String initials = "";
-        if (user.getFirstname() != null && !user.getFirstname().isEmpty()) {
-            initials += user.getFirstname().charAt(0);
-        }
-        if (user.getLastname() != null && !user.getLastname().isEmpty()) {
-            initials += user.getLastname().charAt(0);
-        }
-        holder.tvInitials.setText(initials.toUpperCase());
-
-        // Show admin chip if user is admin
-        if (user.isAdmin()) {
-            holder.chipRole.setVisibility(View.VISIBLE);
-            holder.chipRole.setText("Admin");
-        } else {
-            holder.chipRole.setVisibility(View.GONE);
-        }
+        holder.tvLevels.setText("Level " + user.getCurrentlevel());
 
         holder.itemView.setOnClickListener(v -> {
             if (onUserClickListener != null) {
@@ -72,7 +63,22 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder>{
             return true;
         });
 
+        // Delete
+        holder.btnTrash.setOnClickListener(v -> {
+            if (onUserClickListener != null) {
+                onUserClickListener.onTrashClick(user);
+            }
+        });
+
+        // Manager
+        holder.btnManager.setOnClickListener(v -> {
+            if (onUserClickListener != null) {
+                onUserClickListener.onManagerClick(user);
+            }
+        });
     }
+
+
     @Override
     public int getItemCount() {
         return userList.size();
@@ -101,20 +107,19 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder>{
         userList.remove(index);
         notifyItemRemoved(index);
     }
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvName, tvEmail, tvPhone, tvInitials;
-        Chip chipRole;
+        TextView tvFullName, tvUsername, tvLevels;
+        ImageButton btnTrash, btnManager;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvName = itemView.findViewById(R.id.tv_item_user_name);
-            tvEmail = itemView.findViewById(R.id.tv_item_user_email);
-            tvPhone = itemView.findViewById(R.id.tv_item_user_phone);
-            tvInitials = itemView.findViewById(R.id.tv_user_initials);
-            chipRole = itemView.findViewById(R.id.chip_user_role);
+            tvFullName = itemView.findViewById(R.id.txt_fullname);
+            tvUsername = itemView.findViewById(R.id.txt_username);
+            tvLevels = itemView.findViewById(R.id.txt_level);
+            btnTrash = itemView.findViewById(R.id.trash);
+            btnManager = itemView.findViewById(R.id.manager);
+
         }
     }
-
-
 }
-*/

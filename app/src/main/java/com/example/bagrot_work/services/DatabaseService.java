@@ -32,6 +32,7 @@ public class DatabaseService {
             USERS_PATH = "users",
             GAME_LEVEL_PATH = "levels";
 
+
     /// callback interface for database operations
     /// @param <T> the type of the object to return
     /// @see DatabaseCallback#onCompleted(Object)
@@ -308,8 +309,8 @@ public class DatabaseService {
         });
     }
 
-    public void updateUser(@NotNull final User user, @Nullable final DatabaseCallback<Void> callback) {
-        runTransaction(USERS_PATH + "/" + user.getId(), User.class, currentUser -> user, new DatabaseCallback<User>() {
+    public void updateUser(@NotNull final String uid, UnaryOperator<User> operator, @Nullable final DatabaseCallback<Void> callback) {
+        runTransaction(USERS_PATH + "/" + uid, User.class, operator, new DatabaseCallback<User>() {
             @Override
             public void onCompleted(User object) {
                 if (callback != null) {
@@ -336,8 +337,6 @@ public class DatabaseService {
     }
 
 
-
-//    public void setAdmin(User user, Boolean)
 
 
     // endregion User Section

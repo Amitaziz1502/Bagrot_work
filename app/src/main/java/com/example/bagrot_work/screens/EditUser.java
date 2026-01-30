@@ -25,6 +25,8 @@ import com.example.bagrot_work.utils.SharedPreferencesUtil;
 import com.example.bagrot_work.utils.Validator;
 import com.google.android.material.textfield.TextInputLayout;
 
+import java.util.function.UnaryOperator;
+
 public class EditUser extends BaseActivity implements View.OnClickListener {
 
     private static final String TAG = "EditUser";
@@ -160,8 +162,14 @@ public class EditUser extends BaseActivity implements View.OnClickListener {
         updateUserInDatabase(selectedUser);
     }
 
-    private void updateUserInDatabase(User user) {
-        databaseService.updateUser(user, new DatabaseService.DatabaseCallback<Void>() {
+    private void updateUserInDatabase(final User user) {
+        databaseService.updateUser(user.getId(), new UnaryOperator<User>() {
+            @Override
+            public User apply(User u) {
+                if (u == null ) return null;
+                return user;
+            }
+        }, new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void result) {
                 Toast.makeText(EditUser.this, "Profile updated successfully", Toast.LENGTH_SHORT).show();

@@ -1,5 +1,7 @@
 package com.example.bagrot_work.screens;
 
+import static java.lang.Thread.sleep;
+
 import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -24,6 +26,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.animation.OvershootInterpolator;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -43,7 +46,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.util.function.UnaryOperator;
 
 
 public class GameView extends SurfaceView implements Runnable {
@@ -192,6 +195,9 @@ public class GameView extends SurfaceView implements Runnable {
     private Bitmap movingSpikeImg;
     float rotationAngleSpike = 0;
     float rotationSpeed = 3f;
+
+    private boolean endPopupShown = false;
+
 
 
 
@@ -357,7 +363,7 @@ public class GameView extends SurfaceView implements Runnable {
 
             if (sleepTime > 0) {
                 try {
-                    Thread.sleep(sleepTime);
+                    sleep(sleepTime);
                 } catch (InterruptedException e) {
                     //e.printStackTrace();
                 }
@@ -373,7 +379,16 @@ public class GameView extends SurfaceView implements Runnable {
 
                     currentUser.setCurrentlevel(currentLevel + 1);
                     SharedPreferencesUtil.saveUser(getContext(), currentUser);
-                    DatabaseService.getInstance().updateUser(currentUser, new DatabaseService.DatabaseCallback<Void>() {
+                    DatabaseService.getInstance().updateUser(currentUser.getId(),
+                            new UnaryOperator<User>() {
+                                @Override
+                                public User apply(User user) {
+                                    if (user == null) return user;
+                                    user.setCurrentlevel(currentUser.getCurrentlevel());
+                                    return user;
+                                }
+                            },
+                    new DatabaseService.DatabaseCallback<Void>() {
                         @Override
                         public void onCompleted(Void object) {
                             Log.d("DatabaseService", "Level updated successfully in Firebase");
@@ -393,10 +408,12 @@ public class GameView extends SurfaceView implements Runnable {
 
         if (!isDead) {
             //Checking if player has reached the end of the level
-            if (playerX >= worldWidth-playerSize) {
+            if (!endPopupShown && playerX >= worldWidth - playerSize) {
+                endPopupShown = true;
                 isLevelEnding = true;
                 gameStarted = false;
                 isPlayerVerified();
+                showEndPopup();
             }
 
             if (isLevelEnding) {
@@ -407,48 +424,8 @@ public class GameView extends SurfaceView implements Runnable {
 
                 if (blackAlpha < 255) {
                     blackAlpha += 2;
-                } else {
-                    switch(currentLevel){
-                        case 1:
-                            Intent goToLevelTwo = new Intent(getContext(), LevelTwoActivity.class);
-                            getContext().startActivity(goToLevelTwo);
-                            if (getContext() instanceof Activity) {
-                                ((Activity) getContext()).finish();
-                            }
-                            break;
-
-                        case 2:
-                            Intent goToLevelThree = new Intent(getContext(), LevelThreeActivity.class);
-                            getContext().startActivity(goToLevelThree);
-                            if (getContext() instanceof Activity) {
-                                ((Activity) getContext()).finish();
-                            }
-                            break;
-                        case 3:
-                            Intent goToLevelFour = new Intent(getContext(), LevelFourActivity.class);
-                            getContext().startActivity(goToLevelFour);
-                            if (getContext() instanceof Activity) {
-                                ((Activity) getContext()).finish();
-                            }
-                            break;
-                        case 4:
-                            Intent goToLevelFive = new Intent(getContext(), LevelFiveActivity.class);
-                            getContext().startActivity(goToLevelFive);
-                            if (getContext() instanceof Activity) {
-                                ((Activity) getContext()).finish();
-                            }
-                            break;
-                        case 5:
-                            Intent goToLevelHome = new Intent(getContext(), LevelsActivity.class);
-                            getContext().startActivity(goToLevelHome);
-                            if (getContext() instanceof Activity) {
-                                ((Activity) getContext()).finish();
-                            }
-                            break;
-
-                    }
-
                 }
+
             }
             else {
 
@@ -1087,31 +1064,108 @@ public class GameView extends SurfaceView implements Runnable {
                 getContext().startActivity(exit_intent);
             });
 
-            ImageButton btnRetry = customView.findViewById(R.id.retry);
-            btnRetry.setOnClickListener(v -> {
-                playerX = 200;
-                playerY = 500;
-                savedCheckpointX=playerX;
-                savedCheckpointY=playerY;
-                timeLeftMillis = 120000;
-                rotationAngle = 0;
-                yOffset = 0;
-                alpha = 255;
-                isCollected = false;
-                isVisible = true;
-                for (MovingObstecle mp : movingPlatforms) {
-                    mp.reset();
+            dialog.show();
+        });
+    }
+    public void showEndPopup(){
+        gameStarted=false;
+        ((Activity) getContext()).runOnUiThread(() -> {
+            View customView = LayoutInflater.from(getContext()).inflate(R.layout.pop_up_end_lvl, null);
+            AlertDialog dialog = new AlertDialog.Builder(getContext()).setView(customView).setCancelable(false).create();
+
+            if (dialog.getWindow() != null) {
+                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            }
+            ImageButton btnNext = customView.findViewById(R.id.nextlvl);
+            btnNext.setOnClickListener(v -> {
+                User currentUser = SharedPreferencesUtil.getUser(getContext());
+                if (currentUser != null) {
+                    if (currentLevel == currentUser.getCurrentlevel() && currentLevel < 5) {
+                        int nextLevel = currentLevel + 1;
+                        currentUser.setCurrentlevel(nextLevel);
+                        SharedPreferencesUtil.saveUser(getContext(), currentUser);
+                        DatabaseService.getInstance().updateUser(currentUser.getId(), new UnaryOperator<User>() {
+                            @Override
+                            public User apply(User user) {
+                                if (user == null) return null;
+                                user.setCurrentlevel(nextLevel);
+                                return user;
+                            }
+                        }, new DatabaseService.DatabaseCallback<Void>() {
+                            @Override
+                            public void onCompleted(Void v) {
+
+                            }
+
+                            @Override
+                            public void onFailed(Exception e) {
+
+                            }
+                        });
+                    }
                 }
-                for (MovingObstecle ms : movingSpikes) {
-                    ms.reset();
+                customView.setScaleX(0.5f);
+                customView.setScaleY(0.5f);
+                customView.setAlpha(0f);
+                switch(currentLevel){
+                    case 1:
+                        Intent goToLevelTwo = new Intent(getContext(), LevelTwoActivity.class);
+                        getContext().startActivity(goToLevelTwo);
+                        if (getContext() instanceof Activity) {
+                            ((Activity) getContext()).finish();
+                        }
+                        break;
+
+                    case 2:
+                        Intent goToLevelThree = new Intent(getContext(), LevelThreeActivity.class);
+                        getContext().startActivity(goToLevelThree);
+                        if (getContext() instanceof Activity) {
+                            ((Activity) getContext()).finish();
+                        }
+                        break;
+                    case 3:
+                        Intent goToLevelFour = new Intent(getContext(), LevelFourActivity.class);
+                        getContext().startActivity(goToLevelFour);
+                        if (getContext() instanceof Activity) {
+                            ((Activity) getContext()).finish();
+                        }
+                        break;
+                    case 4:
+                        Intent goToLevelFive = new Intent(getContext(), LevelFiveActivity.class);
+                        getContext().startActivity(goToLevelFive);
+                        if (getContext() instanceof Activity) {
+                            ((Activity) getContext()).finish();
+                        }
+                        break;
+                    case 5:
+                        Intent goToLevelHome = new Intent(getContext(), LevelsActivity.class);
+                        getContext().startActivity(goToLevelHome);
+                        if (getContext() instanceof Activity) {
+                            ((Activity) getContext()).finish();
+                        }
+                        break;
+
                 }
-
-                dialog.dismiss();
-
-
             });
 
+            ImageButton btnExit = customView.findViewById(R.id.exit_popup);
+            btnExit.setOnClickListener(v -> {
+                Intent exit_intent = new Intent(getContext(), LevelsActivity.class);
+                getContext().startActivity(exit_intent);
+                if (getContext() instanceof Activity) {
+                    ((Activity) getContext()).finish();
+                }
+            });
+
+
             dialog.show();
+            customView.animate()
+                    .scaleX(1f)
+                    .scaleY(1f)
+                    .alpha(1f)
+                    .setDuration(1000)
+                    .setInterpolator(new OvershootInterpolator())
+                    .start();
         });
     }
     class FloatingText {

@@ -1,6 +1,7 @@
 package com.example.bagrot_work.models;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class User implements Serializable {
     private String id;
@@ -93,6 +94,15 @@ public class User implements Serializable {
     }
 
 
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id);
+    }
 
-
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 }

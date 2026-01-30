@@ -1,18 +1,16 @@
 package com.example.bagrot_work.screens;
-/*
-import static com.google.firebase.database.core.operation.OperationSource.Source.User;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -21,61 +19,110 @@ import com.example.bagrot_work.adapters.UserAdapter;
 import com.example.bagrot_work.models.User;
 import com.example.bagrot_work.services.DatabaseService;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
-public class AdminActivity extends BaseActivity implements View.OnClickListener {
-    private static final String TAG = "UsersListActivity";
-    private UserAdapter userAdapter;
-    private TextView tvUserCount;
-    private RecyclerView usersList;
+public class AdminActivity extends AppCompatActivity {
+
+    private RecyclerView recyclerView;
+    private UserAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        usersList = findViewById(R.id.usersList);
-        tvUserCount = findViewById(R.id.tvUserCount);
-        usersList.setLayoutManager(new LinearLayoutManager(this));
+        setContentView(R.layout.activity_admin);
 
+        recyclerView = findViewById(R.id.recyclerViewUsers);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        userAdapter = new UserAdapter(new UserAdapter.OnUserClickListener() {
+        adapter = new UserAdapter(new UserAdapter.OnUserClickListener() {
+
             @Override
             public void onUserClick(User user) {
-                Log.d(TAG, "User clicked: " + user);
-                Intent intent = new Intent(AdminActivity.this, UserProfileActivity.class); // שינוי שם המחלקה
-                intent.putExtra("USER_UID", user.getId());
-                startActivity(intent);
             }
 
             @Override
             public void onLongUserClick(User user) {
-                Log.d(TAG, "User long clicked: " + user);
+            }
+
+            @Override
+            public void onTrashClick(User user) {
+                deleteUserFromDatabase(user);
+                adapter.removeUser(user);
+            }
+
+            @Override
+            public void onManagerClick(User user) {
+                setUserAdmin(user, !user.isAdmin());
             }
         });
-        usersList.setAdapter(userAdapter);
+
+        recyclerView.setAdapter(adapter);
+        loadUsers();
 
 
     }
-    @Override
-    protected void onResume() {
-        super.onResume();
-         databaseService.getUserList(new DatabaseService.DatabaseCallback<>() {
+
+
+    private void deleteUserFromDatabase(User user) {
+        DatabaseService.getInstance().deleteUser(user.getId(), new DatabaseService.DatabaseCallback<Void>() {
             @Override
-            public void onCompleted(List<User> users) {
-                userAdapter.setUserList(users);
-                tvUserCount.setText("Total users: " + users.size());
+            public void onCompleted(Void v) {
+                Log.d("trash", "Succeed");
             }
 
             @Override
             public void onFailed(Exception e) {
-                Log.e(TAG, "Failed to get users list", e);
+                Log.d("trash", "Failed");
+
+
             }
         });
     }
 
-    @Override
-    public void onClick(View v) {
+    private void setUserAdmin(User user, boolean flag) {
+        DatabaseService.getInstance().updateUser(user.getId(), new UnaryOperator<User>() {
+                    @Override
+                    public User apply(User u) {
+                        if (u == null) return null;
+                        u.setAdmin(flag);
+                        return u;
+                    }
+                }, new DatabaseService.DatabaseCallback<Void>() {
+                    @Override
+                    public void onCompleted(Void object) {
+                        Log.d("ADMIN", "updated");
+                        user.setAdmin(flag);
+                        adapter.updateUser(user);
+                    }
+
+                    @Override
+                    public void onFailed(Exception e) {
+                        Log.e("ADMIN", "failed", e);
+                    }
+                }
+        );
+
 
     }
+    private void loadUsers() {
+        DatabaseService.getInstance().getUserList(
+                new DatabaseService.DatabaseCallback<List<User>>() {
+                    @Override
+                    public void onCompleted(List<User> users) {
+                        adapter.setUserList(users);
+                    }
+
+                    @Override
+                    public void onFailed(Exception e) {
+                        Log.e("ADMIN", "load users failed", e);
+                    }
+                }
+        );
+    }
+
 }
-*/
+
+
 
