@@ -10,11 +10,11 @@ public class User implements Serializable {
     private String username;
     private String password;
     private boolean isAdmin;
-    private PlayerAppearance appearance;
+    private Skins appearance;
     private Integer currentlevel;
     public User(){}
 
-    public User(String id, String firstname, String lastname, String username, String password, Integer currentlevel, boolean isAdmin) {
+    public User(String id, String firstname, String lastname, String username, String password, Integer currentlevel, boolean isAdmin, Skins appearance) {
         this.id = id;
         this.firstname = firstname;
         this.lastname = lastname;
@@ -22,7 +22,7 @@ public class User implements Serializable {
         this.password = password;
         this.isAdmin = isAdmin;
         this.currentlevel = currentlevel;
-        appearance = new PlayerAppearance(0,0);
+        this.appearance = appearance;
     }
 
     public String getId() {
@@ -86,10 +86,8 @@ public class User implements Serializable {
     public void setAdmin(boolean admin) {
         isAdmin = admin;
     }
-    public PlayerAppearance getAppearance() {
-        return appearance;
-    }
-    public void setAppearance(PlayerAppearance appearance) {
+    public Skins getAppearance() {return appearance;}
+    public void setAppearance(Skins appearance) {
         this.appearance = appearance;
     }
 

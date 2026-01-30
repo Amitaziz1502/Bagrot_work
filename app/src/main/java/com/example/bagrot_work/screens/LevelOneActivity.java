@@ -14,6 +14,8 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import com.example.bagrot_work.R;
+import com.example.bagrot_work.utils.SharedPreferencesUtil;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -23,7 +25,6 @@ public class LevelOneActivity extends BaseActivity implements View.OnClickListen
     private GameView gameView;
     private ImageButton moveRight, moveLeft, exit;
 
-    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,6 +39,7 @@ public class LevelOneActivity extends BaseActivity implements View.OnClickListen
 
         gameView = findViewById(R.id.gameView);
         gameView.setLevel(1);
+        gameView.setSkin(SharedPreferencesUtil.getUser(this).getAppearance());
         moveRight = findViewById(R.id.move_right);
         moveLeft = findViewById(R.id.move_left);
         exit = findViewById(R.id.btn_exit);
@@ -60,7 +62,9 @@ public class LevelOneActivity extends BaseActivity implements View.OnClickListen
             }
             return true;
         });
+
     }
+
 
     @Override
     protected void onResume() {

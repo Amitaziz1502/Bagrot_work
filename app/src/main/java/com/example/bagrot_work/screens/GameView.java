@@ -33,6 +33,7 @@ import android.widget.Toast;
 
 import com.example.bagrot_work.R;
 import com.example.bagrot_work.models.GameLevel;
+import com.example.bagrot_work.models.Skins;
 import com.example.bagrot_work.models.User;
 import com.example.bagrot_work.services.DatabaseService;
 import com.example.bagrot_work.utils.SharedPreferencesUtil;
@@ -198,8 +199,7 @@ public class GameView extends SurfaceView implements Runnable {
 
     private boolean endPopupShown = false;
 
-
-
+    private Skins skin;
 
 
     public void setLevel(int level) {
@@ -256,9 +256,15 @@ public class GameView extends SurfaceView implements Runnable {
         coinPaint.setFilterBitmap(true);
         coinPaint.setAntiAlias(true);
 
-
     }
 
+    public Skins getSkin() {
+        return skin;
+    }
+
+    public void setSkin(Skins skin) {
+        this.skin = skin;
+    }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
@@ -794,8 +800,76 @@ public class GameView extends SurfaceView implements Runnable {
                 coinPaint.setAlpha(255);
             }
 
-            // Drawing player animation (both sides)
-            if (!isDead) {
+            // Drawing player animation cat
+            if (!isDead && skin == Skins.cat) {
+                canvas.save();
+
+                if (movingLeft) {
+                    canvas.scale(-1, 1, playerX + playerSize / 2, playerY + playerSize / 2);
+                }
+
+                Bitmap currentSheet;
+                int currentTotalFrames;
+                int frameToDraw;
+                long time = System.currentTimeMillis();
+
+                if (isJumping) {
+                    // Jump mode
+                    currentSheet = jumpSpriteSheet;
+                    currentTotalFrames = jumpFrameCount;
+
+                    if (time - lastJumpFrameTime > 80) { //
+
+                        if (jumpCurrentFrame < jumpFrameCount - 1) {
+                            jumpCurrentFrame++;
+                        }
+                        lastJumpFrameTime = time;
+                    }
+                    frameToDraw = jumpCurrentFrame;
+
+                } else if (movingLeft || movingRight) {
+                    //Running mode
+                    currentSheet = spriteSheet;
+                    currentTotalFrames = frameCount;
+                    jumpCurrentFrame = 0;
+
+                    if (time - lastFrameTime > frameDuration) {
+                        currentFrame = (currentFrame + 1) % frameCount;
+                        lastFrameTime = time;
+                    }
+                    frameToDraw = currentFrame;
+
+                } else {
+                    //Idle mode
+
+                    currentSheet = idleSpriteSheet;
+                    currentTotalFrames = idleFrameCount;
+                    jumpCurrentFrame = 0;
+
+                    if (time - lastIdleFrameTime > 250 && gameStarted) {
+                        idleCurrentFrame = (idleCurrentFrame + 1) % idleFrameCount;
+                        lastIdleFrameTime = time;
+                    }
+                    frameToDraw = idleCurrentFrame;
+                }
+
+
+                //Drawing character
+                if (currentSheet != null) {
+                    int fWidth = currentSheet.getWidth() / currentTotalFrames;
+                    int fHeight = currentSheet.getHeight();
+                    spriteSrcRect.set(frameToDraw * fWidth, 0, (frameToDraw + 1) * fWidth, fHeight);
+                    spriteDstRect.set((int)playerX, (int)playerY, (int)(playerX + playerSize), (int)(playerY + playerSize));
+
+                    canvas.drawBitmap(currentSheet, spriteSrcRect, spriteDstRect, paint);
+                }
+
+
+
+
+                canvas.restore();
+            }
+            if (!isDead && skin == Skins.dog) {
                 canvas.save();
 
                 if (movingLeft) {

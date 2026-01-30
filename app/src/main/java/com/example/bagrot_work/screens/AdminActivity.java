@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bagrot_work.R;
 import com.example.bagrot_work.adapters.UserAdapter;
+import com.example.bagrot_work.models.Skins;
 import com.example.bagrot_work.models.User;
 import com.example.bagrot_work.services.DatabaseService;
 
@@ -82,6 +83,7 @@ public class AdminActivity extends AppCompatActivity {
     }
 
     private void setUserAdmin(User user, boolean flag) {
+
         DatabaseService.getInstance().updateUser(user.getId(), new UnaryOperator<User>() {
                     @Override
                     public User apply(User u) {

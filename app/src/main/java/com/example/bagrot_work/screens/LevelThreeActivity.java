@@ -13,6 +13,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.bagrot_work.R;
+import com.example.bagrot_work.utils.SharedPreferencesUtil;
 
 public class LevelThreeActivity extends BaseActivity implements View.OnClickListener {
     private GameView gameView;
@@ -33,6 +34,7 @@ public class LevelThreeActivity extends BaseActivity implements View.OnClickList
 
         gameView = findViewById(R.id.gameView);
         gameView.setLevel(3);
+        gameView.setSkin(SharedPreferencesUtil.getUser(this).getAppearance());
         moveRight= findViewById(R.id.move_right);
         moveLeft= findViewById(R.id.move_left);
         exit = findViewById(R.id.btn_exit);
