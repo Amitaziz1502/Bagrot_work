@@ -1,7 +1,12 @@
 package com.example.bagrot_work.screens;
 
+import android.app.SharedElementCallback;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -16,25 +21,28 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.bagrot_work.R;
 import com.example.bagrot_work.adapters.UserAdapter;
-import com.example.bagrot_work.models.Skins;
 import com.example.bagrot_work.models.User;
 import com.example.bagrot_work.services.DatabaseService;
+import com.example.bagrot_work.utils.SharedPreferencesUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
-public class AdminActivity extends AppCompatActivity {
-
+public class AdminActivity extends BaseActivity implements View.OnClickListener {
     private RecyclerView recyclerView;
     private UserAdapter adapter;
+    ImageButton btnGoHome;
+    TextView adminTAG;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin);
-
-        recyclerView = findViewById(R.id.recyclerViewUsers);
+        btnGoHome = findViewById(R.id.btn_go_home);
+        btnGoHome.setOnClickListener(this);
+        adminTAG = findViewById(R.id.main_tag);
+        recyclerView = findViewById(R.id.admin_recycle);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         adapter = new UserAdapter(new UserAdapter.OnUserClickListener() {
@@ -49,24 +57,33 @@ public class AdminActivity extends AppCompatActivity {
 
             @Override
             public void onTrashClick(User user) {
+                if (user.isMainAdmin()) {
+                    Toast.makeText(AdminActivity.this, "u cant delete the main admin", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 deleteUserFromDatabase(user);
                 adapter.removeUser(user);
             }
 
             @Override
             public void onManagerClick(User user) {
+                if (user.isMainAdmin()) {
+                    Toast.makeText(AdminActivity.this, "u cant change the access mode of an admin", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 setUserAdmin(user, !user.isAdmin());
             }
-        });
 
+
+        });
         recyclerView.setAdapter(adapter);
         loadUsers();
-
-
     }
 
-
     private void deleteUserFromDatabase(User user) {
+
         DatabaseService.getInstance().deleteUser(user.getId(), new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void v) {
@@ -105,8 +122,6 @@ public class AdminActivity extends AppCompatActivity {
                     }
                 }
         );
-
-
     }
     private void loadUsers() {
         DatabaseService.getInstance().getUserList(
@@ -122,6 +137,15 @@ public class AdminActivity extends AppCompatActivity {
                     }
                 }
         );
+    }
+
+
+    @Override
+    public void onClick(View v) {
+        if(v.getId() == R.id.btn_go_home){
+            Intent GoHome = new Intent(AdminActivity.this, Home_page.class);
+            startActivity(GoHome);
+        }
     }
 
 }

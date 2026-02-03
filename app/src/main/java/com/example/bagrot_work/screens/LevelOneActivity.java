@@ -7,6 +7,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
@@ -39,7 +40,7 @@ public class LevelOneActivity extends BaseActivity implements View.OnClickListen
 
         gameView = findViewById(R.id.gameView);
         gameView.setLevel(1);
-        gameView.setSkin(SharedPreferencesUtil.getUser(this).getAppearance());
+        gameView.setAbility(SharedPreferencesUtil.getUser(this).getAppearance());
         moveRight = findViewById(R.id.move_right);
         moveLeft = findViewById(R.id.move_left);
         exit = findViewById(R.id.btn_exit);

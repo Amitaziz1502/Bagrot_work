@@ -7,54 +7,35 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#0B1150"
-    tools:context=".screens.AdminActivity">
+    tools:context=".screens.AbilityStore">
 
     <com.google.android.material.appbar.AppBarLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="112dp"
         android:background="#0B1150">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#0B1150"
-            app:title="Admin page"
+            app:title="Ability Store"
             app:titleTextColor="#F6F6F8" />
 
         <ImageButton
             android:id="@+id/btn_go_home"
             android:layout_width="64dp"
             android:layout_height="54dp"
-            android:background="#0B1150"
+            android:background="@android:color/transparent"
             app:srcCompat="@drawable/exit__1_" />
     </com.google.android.material.appbar.AppBarLayout>
 
-    <LinearLayout
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/ability_Recycle"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:background="#0B1150"
         android:padding="16dp"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Users:"
-            android:textColor="#F6F6F8"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="12dp"/>
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/admin_recycle"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:clipToPadding="false"
-            android:scrollbars="vertical"/>
-    </LinearLayout>
-
+        android:clipToPadding="false"
+        android:scrollbars="vertical"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
-

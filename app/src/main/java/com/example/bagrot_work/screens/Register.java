@@ -2,6 +2,11 @@ package com.example.bagrot_work.screens;
 
 import static android.content.ContentValues.TAG;
 
+import static com.example.bagrot_work.models.Abilities.defaultOp;
+import static com.example.bagrot_work.models.Abilities.doubleJump;
+
+import static java.security.AccessController.getContext;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,8 +26,11 @@ import com.example.bagrot_work.services.DatabaseService;
 import com.example.bagrot_work.utils.SharedPreferencesUtil;
 import com.example.bagrot_work.utils.Validator;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.annotations.NotNull;
 
+import java.util.HashMap;
 import java.util.Objects;
 
 public class Register extends BaseActivity implements View.OnClickListener {
@@ -108,7 +116,7 @@ public class Register extends BaseActivity implements View.OnClickListener {
         DatabaseService databaseService = DatabaseService.getInstance();
         Log.d(TAG, "registerUser: Registering user...");
         String uid = databaseService.generateUserId();
-        User user = new User(uid, fName, lName, Username,Password, 1, false);
+        User user = new User(uid, fName, lName, Username,Password, 1,false, defaultOp,false,0);
         databaseService.checkIfUsernameExists(user.getUsername(), new DatabaseService.DatabaseCallback<Boolean>() {
             @Override
             public void onCompleted(Boolean exist) {
@@ -159,4 +167,5 @@ public class Register extends BaseActivity implements View.OnClickListener {
             }
         });
     }
+
 }

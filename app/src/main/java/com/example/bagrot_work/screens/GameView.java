@@ -1,6 +1,7 @@
 package com.example.bagrot_work.screens;
 
 import static java.lang.Thread.sleep;
+import static java.security.AccessController.getContext;
 
 import android.animation.ObjectAnimator;
 import android.app.Activity;
@@ -31,9 +32,12 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import com.example.bagrot_work.R;
+import com.example.bagrot_work.models.Abilities;
 import com.example.bagrot_work.models.GameLevel;
-import com.example.bagrot_work.models.Skins;
+import com.example.bagrot_work.models.Abilities;
 import com.example.bagrot_work.models.User;
 import com.example.bagrot_work.services.DatabaseService;
 import com.example.bagrot_work.utils.SharedPreferencesUtil;
@@ -41,6 +45,8 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -199,7 +205,12 @@ public class GameView extends SurfaceView implements Runnable {
 
     private boolean endPopupShown = false;
 
-    private Skins skin;
+    private Abilities ability;
+
+    private int jumps = 0;
+    private int maxJumps = 2;
+
+    private User currentUser;
 
 
     public void setLevel(int level) {
@@ -216,6 +227,11 @@ public class GameView extends SurfaceView implements Runnable {
 
     public GameView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        this.currentUser = SharedPreferencesUtil.getUser(context);
+
+        if (this.currentUser == null) {
+            Log.e("GameDebug", "No user found in SharedPreferences!");
+        }
         init();
     }
 
@@ -258,13 +274,14 @@ public class GameView extends SurfaceView implements Runnable {
 
     }
 
-    public Skins getSkin() {
-        return skin;
+    public Abilities getAbility() {
+        return ability;
     }
 
-    public void setSkin(Skins skin) {
-        this.skin = skin;
+    public void setAbility(Abilities skin) {
+        this.ability = skin;
     }
+
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
@@ -273,6 +290,7 @@ public class GameView extends SurfaceView implements Runnable {
         createPlatforms();
         scaleBackground();
     }
+
 
     private void loadBitmaps() {
         if (backgroundImage == null) {
@@ -315,9 +333,11 @@ public class GameView extends SurfaceView implements Runnable {
             checkpointImageAfter = BitmapFactory.decodeResource(getResources(), R.drawable.flag2);
 
         }
-        if(coinImage == null){
+        if (coinImage == null) {
             coinImage = BitmapFactory.decodeResource(getResources(), R.drawable.coin);
-
+            if (coinImage == null) {
+                Log.e("GameDebug", "Failed to load coin image! Check if coin.png exists in res/drawable");
+            }
         }
         if(movingSpikeImg==null){
             movingSpikeImg = BitmapFactory.decodeResource(getResources(), R.drawable.moving_spike);
@@ -331,11 +351,6 @@ public class GameView extends SurfaceView implements Runnable {
 
     }
 
-
-    private void updateLevelInFirebase(String userId, int newLevel) {
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(userId);
-        ref.child("currentlevel").setValue(newLevel);
-    }
 
     private void scaleBackground() {
         if (backgroundImage == null || backgroundImage2==null || backgroundImage3==null || backgroundImage4==null|| backgroundImage5==null) return;
@@ -376,37 +391,38 @@ public class GameView extends SurfaceView implements Runnable {
             }
         }
     }
+
     private void isPlayerVerified() {
 
-            User currentUser = SharedPreferencesUtil.getUser(getContext());
+        User currentUser = SharedPreferencesUtil.getUser(getContext());
 
-            if (currentUser != null) {
-                if (currentLevel == currentUser.getCurrentlevel() && currentLevel < 5) {
+        if (currentUser != null) {
+            if (currentLevel == currentUser.getCurrentlevel() && currentLevel < 5) {
 
-                    currentUser.setCurrentlevel(currentLevel + 1);
-                    SharedPreferencesUtil.saveUser(getContext(), currentUser);
-                    DatabaseService.getInstance().updateUser(currentUser.getId(),
-                            new UnaryOperator<User>() {
-                                @Override
-                                public User apply(User user) {
-                                    if (user == null) return user;
-                                    user.setCurrentlevel(currentUser.getCurrentlevel());
-                                    return user;
-                                }
-                            },
-                    new DatabaseService.DatabaseCallback<Void>() {
-                        @Override
-                        public void onCompleted(Void object) {
-                            Log.d("DatabaseService", "Level updated successfully in Firebase");
-                        }
+                currentUser.setCurrentlevel(currentLevel + 1);
+                SharedPreferencesUtil.saveUser(getContext(), currentUser);
+                DatabaseService.getInstance().updateUser(currentUser.getId(),
+                        new UnaryOperator<User>() {
+                            @Override
+                            public User apply(User user) {
+                                if (user == null) return user;
+                                user.setCurrentlevel(currentUser.getCurrentlevel());
+                                return user;
+                            }
+                        },
+                        new DatabaseService.DatabaseCallback<Void>() {
+                            @Override
+                            public void onCompleted(Void object) {
+                                Log.d("DatabaseService", "Level updated successfully in Firebase");
+                            }
 
-                        @Override
-                        public void onFailed(Exception e) {
-                            Log.e("DatabaseService", "Failed to update level", e);
-                        }
-                    });
-                }
+                            @Override
+                            public void onFailed(Exception e) {
+                                Log.e("DatabaseService", "Failed to update level", e);
+                            }
+                        });
             }
+        }
     }
 
     private void update() {
@@ -415,10 +431,11 @@ public class GameView extends SurfaceView implements Runnable {
         if (!isDead) {
             //Checking if player has reached the end of the level
             if (!endPopupShown && playerX >= worldWidth - playerSize) {
+                Log.d("Debug", "Level reached end point!");
+                updateLevelProgress();
                 endPopupShown = true;
                 isLevelEnding = true;
                 gameStarted = false;
-                isPlayerVerified();
                 showEndPopup();
             }
 
@@ -434,9 +451,13 @@ public class GameView extends SurfaceView implements Runnable {
 
             }
             else {
+                if(getAbility() == Abilities.fastRun){
+                    moveSpeed = 18f;
+                }
 
                 velocityY += gravity;
                 playerY += velocityY;
+
 
                 if (movingLeft) playerX -= moveSpeed;
                 if (movingRight) playerX += moveSpeed;
@@ -502,7 +523,6 @@ public class GameView extends SurfaceView implements Runnable {
                     playerRect.set((int)playerX + 20, (int)playerY + 20, (int)(playerX + playerSize) - 20, (int)(playerY + playerSize));
                     if (Rect.intersects(playerRect, mp.rect)) {
 
-                        // Landing on top of the platform
                         // Landing on top of the platform
                         if (velocityY >= 0 && (playerY + playerSize) <= (mp.rect.top + velocityY + 15)) {
                             mp.isTriggered = true;
@@ -571,8 +591,10 @@ public class GameView extends SurfaceView implements Runnable {
                     }
                 }
 
-                isJumping = !onGround;
-
+                if (onGround) {
+                    jumps = 0;
+                    isJumping = false;
+                }
                 // Spike check
                 for (Rect spike : spikes) {
                     if (playerX + playerSize > spike.left - 200 && playerX < spike.right + 200) {
@@ -583,16 +605,20 @@ public class GameView extends SurfaceView implements Runnable {
                     }
                 }
 
-                // Coin collision and update
+                // Coin collision
                 for (Coin coin : coins) {
-                    if (coin.isVisible && !coin.isCollected) {
-                        if (Rect.intersects(playerRect, coin.position)) {
-                            coin.isCollected = true;
-                            coinsCollected++;
-                        }
+                    if (!coin.isVisible) continue;
+
+                    if (Rect.intersects(playerRect, coin.position)) {
+                        coin.isCollected = true;
+                        coin.isVisible = false;
+                        coinsCollected++;
                     }
+
                     coin.update();
                 }
+
+
 
                 // Checkpoint check
                 for (int i = 0; i < checkpoints.size(); i++) {
@@ -642,12 +668,27 @@ public class GameView extends SurfaceView implements Runnable {
         updateParticles();
     }
 
-
     private void triggerDeath() {
         isDead = true;
         particles.clear();
         for (int i = 0; i < 30; i++) {
             particles.add(new Particle(playerX + playerSize/2, playerY + playerSize/2));
+        }
+    }
+    public void tryJump() {
+        if (getAbility() == Abilities.doubleJump) {
+            maxJumps = 2;
+        } else {
+            maxJumps = 1;
+        }
+
+        if (jumps < maxJumps) {
+            velocityY = -35f;
+            jumps++;
+            isJumping = true;
+            gameStarted = true;
+            jumpCurrentFrame = 0;
+
         }
     }
 
@@ -698,8 +739,6 @@ public class GameView extends SurfaceView implements Runnable {
         if (canvas == null) return;
 
         try {
-
-
 
             // Drawing background
             float backgroundscroll = worldOffsetX > 200 ? 200 : worldOffsetX;
@@ -801,7 +840,7 @@ public class GameView extends SurfaceView implements Runnable {
             }
 
             // Drawing player animation cat
-            if (!isDead && skin == Skins.cat) {
+            if (!isDead ) {
                 canvas.save();
 
                 if (movingLeft) {
@@ -863,77 +902,6 @@ public class GameView extends SurfaceView implements Runnable {
 
                     canvas.drawBitmap(currentSheet, spriteSrcRect, spriteDstRect, paint);
                 }
-
-
-
-
-                canvas.restore();
-            }
-            if (!isDead && skin == Skins.dog) {
-                canvas.save();
-
-                if (movingLeft) {
-                    canvas.scale(-1, 1, playerX + playerSize / 2, playerY + playerSize / 2);
-                }
-
-                Bitmap currentSheet;
-                int currentTotalFrames;
-                int frameToDraw;
-                long time = System.currentTimeMillis();
-
-                if (isJumping) {
-                    // Jump mode
-                    currentSheet = jumpSpriteSheet;
-                    currentTotalFrames = jumpFrameCount;
-
-                    if (time - lastJumpFrameTime > 80) { //
-
-                        if (jumpCurrentFrame < jumpFrameCount - 1) {
-                            jumpCurrentFrame++;
-                        }
-                        lastJumpFrameTime = time;
-                    }
-                    frameToDraw = jumpCurrentFrame;
-
-                } else if (movingLeft || movingRight) {
-                    //Running mode
-                    currentSheet = spriteSheet;
-                    currentTotalFrames = frameCount;
-                    jumpCurrentFrame = 0;
-
-                    if (time - lastFrameTime > frameDuration) {
-                        currentFrame = (currentFrame + 1) % frameCount;
-                        lastFrameTime = time;
-                    }
-                    frameToDraw = currentFrame;
-
-                } else {
-                    //Idle mode
-
-                    currentSheet = idleSpriteSheet;
-                    currentTotalFrames = idleFrameCount;
-                    jumpCurrentFrame = 0;
-
-                    if (time - lastIdleFrameTime > 250 && gameStarted) {
-                        idleCurrentFrame = (idleCurrentFrame + 1) % idleFrameCount;
-                        lastIdleFrameTime = time;
-                    }
-                    frameToDraw = idleCurrentFrame;
-                }
-
-
-                //Drawing character
-                if (currentSheet != null) {
-                    int fWidth = currentSheet.getWidth() / currentTotalFrames;
-                    int fHeight = currentSheet.getHeight();
-                    spriteSrcRect.set(frameToDraw * fWidth, 0, (frameToDraw + 1) * fWidth, fHeight);
-                    spriteDstRect.set((int)playerX, (int)playerY, (int)(playerX + playerSize), (int)(playerY + playerSize));
-
-                    canvas.drawBitmap(currentSheet, spriteSrcRect, spriteDstRect, paint);
-                }
-
-
-
 
                 canvas.restore();
             }
@@ -1038,30 +1006,6 @@ public class GameView extends SurfaceView implements Runnable {
         }
     }
 
-    public void cleanup() {
-        if (backgroundImage != null) {
-            backgroundImage.recycle();
-            backgroundImage = null;
-        }
-        if (scaledBackground != null) {
-            scaledBackground.recycle();
-            scaledBackground = null;
-        }
-        if (characterImage != null) {
-            characterImage.recycle();
-            characterImage = null;
-        }
-    }
-
-    // Player controls
-    public void jump() {
-        if (!isJumping) {
-            velocityY = -35;
-            gameStarted = true;
-            isJumping = true;
-        }
-    }
-
     public void moveLeft(boolean moving) {
         movingLeft = moving;
         if (moving) gameStarted = true;
@@ -1088,11 +1032,12 @@ public class GameView extends SurfaceView implements Runnable {
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             if (event.getX() > (float) getWidth() / 2) {
-                jump();
+                tryJump();
             }
         }
         return true;
     }
+
     class Particle {
         float x, y, vx, vy;
         int alpha = 255;
@@ -1254,50 +1199,66 @@ public class GameView extends SurfaceView implements Runnable {
     }
 
     private void createPlatforms() {
+        this.currentUser = SharedPreferencesUtil.getUser(getContext());
         int floorLevel = getHeight() - 200;
         GameLevel data = GameLevel.getLevel(currentLevel, floorLevel);
 
         if (data != null) {
+            // Platforms
             this.platforms.clear();
-            for (GameLevel.RectData rd : data.platforms) {
+            for (GameLevel.RectData rd : data.platforms)
                 this.platforms.add(rd.toRect());
-            }
 
+            // Spikes
             this.spikes.clear();
-            for (GameLevel.RectData sd : data.spikes) {
+            for (GameLevel.RectData sd : data.spikes)
                 this.spikes.add(sd.toRect());
-            }
 
+            // Checkpoints
             this.checkpoints.clear();
-            for (GameLevel.RectData cd : data.checkpoints) {
+            for (GameLevel.RectData cd : data.checkpoints)
                 this.checkpoints.add(cd.toRect());
-            }
 
             this.worldWidth = data.worldWidth;
             this.timeLeftMillis = data.levelTimeMillis;
 
+            // Floating texts
             this.floatingTexts.clear();
-            for (GameLevel.FloatingTextData ft : data.floatingTexts) {
+            for (GameLevel.FloatingTextData ft : data.floatingTexts)
                 this.floatingTexts.add(new FloatingText(ft.text, ft.x, ft.y));
-            }
 
+            // Moving platforms
             movingPlatforms.clear();
             if (data.movingPlatforms != null) {
-                for (GameLevel.MovingObstecleData mpd : data.movingPlatforms) {
-                    movingPlatforms.add(new MovingObstecle(mpd.x, mpd.y, mpd.width, mpd.height, mpd.rangeX, mpd.rangeY, mpd.speed,mpd.isTriggerBased));                }
+                for (GameLevel.MovingObstecleData mpd : data.movingPlatforms)
+                    movingPlatforms.add(new MovingObstecle(mpd.x, mpd.y, mpd.width, mpd.height, mpd.rangeX, mpd.rangeY, mpd.speed, mpd.isTriggerBased));
             }
 
-            movingSpikes.clear();
-            if (data.movingSpikes != null) {
-                for (GameLevel.MovingObstecleData msd : data.movingSpikes) {
-                    movingSpikes.add(new MovingObstecle(msd.x, msd.y, msd.width, msd.height, msd.rangeX, msd.rangeY, msd.speed,msd.isTriggerBased));
+            // Coins
+            this.coins.clear();
+            if (data.coins != null) {
+                for (int i = 0; i < data.coins.size(); i++) {
+                    Coin coin = new Coin(data.coins.get(i).toRect(), i);
+                    this.coins.add(coin);
                 }
             }
 
+            this.totalCoinsInLevel = coins.size();
+            this.coinsCollected = 0;
+
+            // Moving spikes
+            movingSpikes.clear();
+            if (data.movingSpikes != null) {
+                for (GameLevel.MovingObstecleData msd : data.movingSpikes)
+                    movingSpikes.add(new MovingObstecle(msd.x, msd.y, msd.width, msd.height, msd.rangeX, msd.rangeY, msd.speed, msd.isTriggerBased));
+            }
+
+            // Checkpoints activated
             checkpointActivated.clear();
             for (Rect r : checkpoints) checkpointActivated.add(false);
         }
     }
+
     private void loadLevelFromCloud(int levelNumber) {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("levels").child("level_" + levelNumber);
 
@@ -1306,51 +1267,58 @@ public class GameView extends SurfaceView implements Runnable {
             public void onDataChange(DataSnapshot snapshot) {
                 GameLevel data = snapshot.getValue(GameLevel.class);
                 if (data != null) {
+
+                    // Platforms
                     platforms.clear();
                     for (GameLevel.RectData rd : data.platforms)
                         platforms.add(rd.toRect());
 
+                    // Spikes
                     spikes.clear();
                     for (GameLevel.RectData sd : data.spikes)
                         spikes.add(sd.toRect());
 
+                    // Checkpoints
                     checkpoints.clear();
                     if (data.checkpoints != null) {
                         for (GameLevel.RectData cd : data.checkpoints)
                             checkpoints.add(cd.toRect());
                     }
 
+                    // Floating texts
                     floatingTexts.clear();
                     if (data.floatingTexts != null) {
-                        for (GameLevel.FloatingTextData ft : data.floatingTexts) {
+                        for (GameLevel.FloatingTextData ft : data.floatingTexts)
                             floatingTexts.add(new FloatingText(ft.text, ft.x, ft.y));
-                        }
                     }
 
+                    // Moving platforms
                     movingPlatforms.clear();
                     if (data.movingPlatforms != null) {
-                        for (GameLevel.MovingObstecleData mpd : data.movingPlatforms) {
-                            // הוספת mpd.isTriggerBased בסוף
+                        for (GameLevel.MovingObstecleData mpd : data.movingPlatforms)
                             movingPlatforms.add(new MovingObstecle(mpd.x, mpd.y, mpd.width, mpd.height,
                                     mpd.rangeX, mpd.rangeY, mpd.speed, mpd.isTriggerBased));
-                        }
-                    }
-                    movingSpikes.clear();
-                    if (data.movingSpikes != null) {
-                        for (GameLevel.MovingObstecleData msd : data.movingSpikes) {
-                            movingPlatforms.add(new MovingObstecle(msd.x, msd.y, msd.width, msd.height, msd.rangeX,0, msd.speed,msd.isTriggerBased));
-                        }
                     }
 
+                    // Moving spikes
+                    movingSpikes.clear();
+                    if (data.movingSpikes != null) {
+                        for (GameLevel.MovingObstecleData msd : data.movingSpikes)
+                            movingSpikes.add(new MovingObstecle(msd.x, msd.y, msd.width, msd.height, msd.rangeX, 0, msd.speed, msd.isTriggerBased));
+                    }
+
+                    // Coins
                     coins.clear();
                     if (data.coins != null) {
-                        for (GameLevel.RectData cr : data.coins) {
-                            coins.add(new Coin(cr.toRect()));
+                        for (int i = 0; i < data.coins.size(); i++) {
+                            Coin coin = new Coin(data.coins.get(i).toRect(), i);
+                            coins.add(coin);
                         }
                     }
                     totalCoinsInLevel = coins.size();
                     coinsCollected = 0;
 
+                    // Checkpoints activated
                     checkpointActivated.clear();
                     for (Rect r : checkpoints) checkpointActivated.add(false);
 
@@ -1360,11 +1328,35 @@ public class GameView extends SurfaceView implements Runnable {
                     postInvalidate();
                 }
             }
+
             @Override
             public void onCancelled(DatabaseError error) {
                 Log.e("DB", "Failed to load level", error.toException());
             }
         });
+    }
+
+
+    private void updateLevelProgress() {
+        if (currentUser == null) return;
+
+        int nextLevel = currentLevel + 1;
+
+        if (nextLevel > currentUser.getCurrentlevel()) {
+            currentUser.setCurrentlevel(nextLevel);
+
+            DatabaseReference userRef = FirebaseDatabase.getInstance()
+                    .getReference("users")
+                    .child(currentUser.getId());
+
+            HashMap<String, Object> updates = new HashMap<>();
+            updates.put("currentlevel", nextLevel);
+
+            userRef.updateChildren(updates).addOnSuccessListener(aVoid -> {
+                SharedPreferencesUtil.saveUser(getContext(), currentUser);
+                Log.d("GameDebugDebug", "Progress saved. Next level: " + nextLevel);
+            });
+        }
     }
 
     private class MovingObstecle {
@@ -1455,33 +1447,42 @@ public class GameView extends SurfaceView implements Runnable {
         float rotationAngle = 0;
         float yOffset = 0;
         int alpha = 255;
+        int coinId;
         boolean isCollected = false;
         boolean isVisible = true;
 
-        public Coin(Rect position) {
-            this.position = position;
+        public Coin(Rect position, int coinId) {
+                this.position = position;
+                this.coinId = coinId;
         }
-
         void update() {
-            if (isCollected && isVisible) {
-                rotationAngle += 15;
-                yOffset -= 5;
-                alpha -= 10;
-
-                if (alpha <= 0) {
-                    alpha = 0;
-                    isVisible = false;
+            if (!isVisible) return;
+                if (isCollected) {
+                    rotationAngle += 20;
+                    yOffset -= 8;
+                    if (yOffset < -60) {
+                        alpha -= 5;
+                    }
+                    if (alpha <= 0) {
+                        alpha = 0;
+                        isVisible = false;
+                    }
                 }
+            }
+            void hideFromStart() {
+                isCollected = true;
+                isVisible = false;
+                alpha = 0;
+                yOffset = 0;
+                rotationAngle = 0;
+            }
+            void reset() {
+                rotationAngle = 0;
+                yOffset = 0;
+                alpha = 255;
+                isCollected = false;
+                isVisible = true;
             }
         }
 
-        void reset() {
-            rotationAngle = 0;
-            yOffset = 0;
-            alpha = 255;
-            isCollected = false;
-            isVisible = true;
-        }
     }
-}
-

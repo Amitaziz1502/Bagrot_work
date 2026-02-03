@@ -78,9 +78,6 @@ public class GameLevel {
         }
     }
 
-
-
-
     @NonNull
     @Exclude
     public static GameLevel getLevel(int levelNumber, int floorLevel) {
@@ -89,6 +86,11 @@ public class GameLevel {
             case 1:
                 level.worldWidth = 14500;
                 level.levelTimeMillis = 120000;
+
+
+                level.coins.add(new RectData(500, floorLevel - 300, 600, floorLevel - 200));
+                level.coins.add(new RectData(2400, floorLevel - 300, 2460, floorLevel - 200));
+                level.coins.add(new RectData(3000, floorLevel - 300, 3100, floorLevel - 200));
 
                 //Texts
                 level.floatingTexts.add(new FloatingTextData("Welcome to my game! ", 400, floorLevel - 500));
@@ -114,7 +116,6 @@ public class GameLevel {
                 level.spikes.add(new RectData(6700, floorLevel - 100, 6750, floorLevel));
                 level.spikes.add(new RectData(7300, floorLevel - 100, 7350, floorLevel));
                 level.spikes.add(new RectData(10000, floorLevel - 100, 10100, floorLevel));
-
 
 
                 //Checkpoint

@@ -49,7 +49,7 @@
             app:srcCompat="@drawable/logout__2_" />
 
         <ImageButton
-            android:id="@+id/imageButton6"
+            android:id="@+id/btn_store"
             android:layout_width="114dp"
             android:layout_height="113dp"
             android:background="#0B1150"

@@ -27,7 +27,7 @@ import com.example.bagrot_work.utils.Validator;
 
 public class Home_page extends BaseActivity implements View.OnClickListener {
     private TextView tvUserDisplayName;
-    private ImageButton btnAdmin;
+    private ImageButton btnAdmin,btnStore;
     private User user;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +59,9 @@ public class Home_page extends BaseActivity implements View.OnClickListener {
             }
         });
         btnAdmin = findViewById(R.id.btnAdminPage);
+        btnStore = findViewById(R.id.btn_store);
         btnAdmin.setOnClickListener(this);
+        btnStore.setOnClickListener(this);
 
 
         ImageButton btnToLevelMap = findViewById(R.id.btnToLevelMap);
@@ -86,7 +88,6 @@ public class Home_page extends BaseActivity implements View.OnClickListener {
         if(v.getId() == R.id.btn_edit_user){
             Intent intent = new Intent(Home_page.this, EditUser.class);
             startActivity(intent);
-
         }
         if (v.getId() == R.id.sign_out) {
             signOut();
@@ -98,6 +99,10 @@ public class Home_page extends BaseActivity implements View.OnClickListener {
         if (v.getId() == R.id.btnAdminPage){
             Intent goToAdmin = new Intent(Home_page.this, AdminActivity.class);
             startActivity(goToAdmin);
+        }
+        if (v.getId() == R.id.btn_store){
+            Intent goToStore = new Intent(Home_page.this, AbilityStore.class);
+            startActivity(goToStore);
         }
     }
 

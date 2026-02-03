@@ -84,10 +84,24 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="Levels"
-            android:textSize="14sp"
+            android:textSize="16sp"
             android:textColor="#F6F6F8"
             app:layout_constraintStart_toStartOf="@id/txt_fullname"
             app:layout_constraintTop_toBottomOf="@id/txt_username" />
+
+        <TextView
+            android:id="@+id/main_tag"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#F6F6F8"
+            android:text="admin"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/manager"
+            app:layout_constraintHorizontal_bias="0.018"
+            app:layout_constraintStart_toEndOf="@+id/txt_level"
+            app:layout_constraintTop_toBottomOf="@+id/txt_username"
+            app:layout_constraintVertical_bias="0.8" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

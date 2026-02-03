@@ -34,7 +34,7 @@ public class LevelFiveActivity extends BaseActivity implements View.OnClickListe
 
         gameView = findViewById(R.id.gameView);
         gameView.setLevel(5);
-        gameView.setSkin(SharedPreferencesUtil.getUser(this).getAppearance());
+        gameView.setAbility(SharedPreferencesUtil.getUser(this).getAppearance());
         moveRight= findViewById(R.id.move_right);
         moveLeft= findViewById(R.id.move_left);
         exit = findViewById(R.id.btn_exit);

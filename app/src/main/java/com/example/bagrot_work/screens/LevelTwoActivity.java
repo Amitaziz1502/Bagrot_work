@@ -34,7 +34,7 @@ public class LevelTwoActivity extends BaseActivity implements View.OnClickListen
 
         gameView = findViewById(R.id.gameView);
         gameView.setLevel(2);
-        gameView.setSkin(SharedPreferencesUtil.getUser(this).getAppearance());
+        gameView.setAbility(SharedPreferencesUtil.getUser(this).getAppearance());
         moveRight= findViewById(R.id.move_right);
         moveLeft= findViewById(R.id.move_left);
         exit = findViewById(R.id.btn_exit);
@@ -58,8 +58,6 @@ public class LevelTwoActivity extends BaseActivity implements View.OnClickListen
             return true;
         });
 
-
-
     }
     @Override
     protected void onResume() {
@@ -77,8 +75,6 @@ public class LevelTwoActivity extends BaseActivity implements View.OnClickListen
     public void onClick(View v) {
         if(v.getId() ==  R.id.btn_exit){
             gameView.showPausePopup();
-
         }
     }
-
 }

@@ -1,5 +1,6 @@
 package com.example.bagrot_work.adapters;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,7 +45,16 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         User user = userList.get(position);
+
         if (user == null) return;
+
+        if (user.isAdmin()) {
+            holder.tvStatus.setText("Admin");
+            holder.tvStatus.setTextColor(Color.WHITE);
+        } else {
+            holder.tvStatus.setText("User");
+            holder.tvStatus.setTextColor(Color.GRAY);
+        }
 
         holder.tvFullName.setText(user.getFirstname() + " " + user.getLastname());
         holder.tvUsername.setText(user.getUsername());
@@ -111,6 +121,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvFullName, tvUsername, tvLevels;
         ImageButton btnTrash, btnManager;
+        TextView tvStatus;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -119,6 +130,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
             tvLevels = itemView.findViewById(R.id.txt_level);
             btnTrash = itemView.findViewById(R.id.trash);
             btnManager = itemView.findViewById(R.id.manager);
+            tvStatus = itemView.findViewById(R.id.main_tag);
 
         }
     }

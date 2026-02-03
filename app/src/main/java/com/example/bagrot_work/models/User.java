@@ -10,11 +10,13 @@ public class User implements Serializable {
     private String username;
     private String password;
     private boolean isAdmin;
-    private Skins appearance;
+    private Abilities appearance;
     private Integer currentlevel;
+    private Integer totalCoins;
+    private boolean mainAdmin;
     public User(){}
 
-    public User(String id, String firstname, String lastname, String username, String password, Integer currentlevel, boolean isAdmin, Skins appearance) {
+    public User(String id, String firstname, String lastname, String username, String password, Integer currentlevel, boolean isAdmin, Abilities appearance, boolean mainAdmin,Integer totalCoins) {
         this.id = id;
         this.firstname = firstname;
         this.lastname = lastname;
@@ -23,17 +25,13 @@ public class User implements Serializable {
         this.isAdmin = isAdmin;
         this.currentlevel = currentlevel;
         this.appearance = appearance;
+        this.mainAdmin = mainAdmin;
+        this.totalCoins = totalCoins;
     }
 
-    public String getId() {
+    public String getId() {return id;}
 
-        return id;
-    }
-
-    public void setId(String id) {
-
-        this.id = id;
-    }
+    public void setId(String id) {this.id = id;}
 
     public String getFirstname() {
         return firstname;
@@ -75,20 +73,26 @@ public class User implements Serializable {
     public void setCurrentlevel(Integer currentlevel) {
         this.currentlevel = currentlevel;
     }
-    public void levelUp() {
-        if (this.currentlevel < 5) {
-            this.currentlevel++;
-        }
-    }
+
     public boolean isAdmin() {
         return isAdmin;
     }
     public void setAdmin(boolean admin) {
         isAdmin = admin;
     }
-    public Skins getAppearance() {return appearance;}
-    public void setAppearance(Skins appearance) {
+    public Abilities getAppearance() {return appearance;}
+    public void setAppearance(Abilities appearance) {
         this.appearance = appearance;
+    }
+    public boolean isMainAdmin() {
+        return mainAdmin;
+    }
+    public Integer getTotalCoins() {
+        return totalCoins;
+    }
+
+    public void setTotalCoins(Integer totalCoins) {
+        this.totalCoins = totalCoins;
     }
 
 
@@ -103,4 +107,6 @@ public class User implements Serializable {
     public int hashCode() {
         return Objects.hashCode(id);
     }
+
+
 }
