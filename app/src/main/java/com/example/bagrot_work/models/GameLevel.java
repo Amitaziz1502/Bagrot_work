@@ -14,7 +14,7 @@ public class GameLevel {
     public List<RectData> platforms;
     public List<RectData> spikes;
     public List<RectData> checkpoints;
-    public List<RectData> coins;
+    public List<CoinData> coins;
     public List<FloatingTextData> floatingTexts;
     public List<MovingObstecleData> movingPlatforms;
     public List<MovingObstecleData> movingSpikes;
@@ -46,6 +46,26 @@ public class GameLevel {
             return new Rect(left, top, right, bottom);
         }
     }
+    public static class CoinData {
+        public int left, top, right, bottom;
+        public int id;
+
+        public CoinData() {}
+
+        public CoinData(int id, int left, int top, int right, int bottom) {
+            this.id = id;
+            this.left = left;
+            this.top = top;
+            this.right = right;
+            this.bottom = bottom;
+        }
+
+        public Rect toRect() {
+            return new Rect(left, top, right, bottom);
+        }
+    }
+
+
 
     public static class MovingObstecleData {
         public int x, y, width, height, rangeX, rangeY;
@@ -87,10 +107,9 @@ public class GameLevel {
                 level.worldWidth = 14500;
                 level.levelTimeMillis = 120000;
 
-
-                level.coins.add(new RectData(500, floorLevel - 300, 600, floorLevel - 200));
-                level.coins.add(new RectData(2400, floorLevel - 300, 2460, floorLevel - 200));
-                level.coins.add(new RectData(3000, floorLevel - 300, 3100, floorLevel - 200));
+                level.coins.add(new CoinData(1,500, floorLevel - 300, 600, floorLevel - 200));
+                level.coins.add(new CoinData(2,2400, floorLevel - 300, 2460, floorLevel - 200));
+                level.coins.add(new CoinData(3,3000, floorLevel - 300, 3100, floorLevel - 200));
 
                 //Texts
                 level.floatingTexts.add(new FloatingTextData("Welcome to my game! ", 400, floorLevel - 500));
@@ -127,7 +146,7 @@ public class GameLevel {
                 level.worldWidth = 20000;
                 level.levelTimeMillis = 120000;
 
-                level.coins.add(new RectData(1900, floorLevel-200, 2200, floorLevel-100));
+                level.coins.add(new CoinData(4,1900, floorLevel-200, 2000, floorLevel-100));
 
                 //Platforms
                 level.platforms.add(new RectData(1900, 600, 2200, 650));

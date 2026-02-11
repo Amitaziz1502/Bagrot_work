@@ -1,13 +1,17 @@
 package com.example.bagrot_work.screens;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageButton;
 import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
+
+import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.core.graphics.Insets;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.bagrot_work.R;
 import com.example.bagrot_work.adapters.AbilityAdapter;
 import com.example.bagrot_work.models.Abilities;
@@ -15,7 +19,8 @@ import com.example.bagrot_work.models.Abilities;
 import java.util.Arrays;
 import java.util.List;
 
-public class AbilityStore extends AppCompatActivity {
+public class AbilityStore extends BaseActivity implements View.OnClickListener {
+    ImageButton exit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +36,8 @@ public class AbilityStore extends AppCompatActivity {
         RecyclerView recyclerView = findViewById(R.id.ability_Recycle);
 
         recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
+        exit = findViewById(R.id.btn_go_home);
+        exit.setOnClickListener(this);
 
         List<Abilities> abilities = Arrays.asList(
                 Abilities.fastRun,
@@ -43,6 +50,13 @@ public class AbilityStore extends AppCompatActivity {
         });
 
         recyclerView.setAdapter(adapter);
+    }
+
+    @Override
+    public void onClick(View v) {
+        if(v.getId() == R.id.btn_go_home) {
+            Intent GoHome = new Intent(AbilityStore.this, Home_page.class);
+            startActivity(GoHome);        }
     }
 }
 

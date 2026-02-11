@@ -228,10 +228,6 @@ public class GameView extends SurfaceView implements Runnable {
     public GameView(Context context, AttributeSet attrs) {
         super(context, attrs);
         this.currentUser = SharedPreferencesUtil.getUser(context);
-
-        if (this.currentUser == null) {
-            Log.e("GameDebug", "No user found in SharedPreferences!");
-        }
         init();
     }
 
@@ -392,38 +388,6 @@ public class GameView extends SurfaceView implements Runnable {
         }
     }
 
-    private void isPlayerVerified() {
-
-        User currentUser = SharedPreferencesUtil.getUser(getContext());
-
-        if (currentUser != null) {
-            if (currentLevel == currentUser.getCurrentlevel() && currentLevel < 5) {
-
-                currentUser.setCurrentlevel(currentLevel + 1);
-                SharedPreferencesUtil.saveUser(getContext(), currentUser);
-                DatabaseService.getInstance().updateUser(currentUser.getId(),
-                        new UnaryOperator<User>() {
-                            @Override
-                            public User apply(User user) {
-                                if (user == null) return user;
-                                user.setCurrentlevel(currentUser.getCurrentlevel());
-                                return user;
-                            }
-                        },
-                        new DatabaseService.DatabaseCallback<Void>() {
-                            @Override
-                            public void onCompleted(Void object) {
-                                Log.d("DatabaseService", "Level updated successfully in Firebase");
-                            }
-
-                            @Override
-                            public void onFailed(Exception e) {
-                                Log.e("DatabaseService", "Failed to update level", e);
-                            }
-                        });
-            }
-        }
-    }
 
     private void update() {
         long time = System.currentTimeMillis();
@@ -1086,6 +1050,8 @@ public class GameView extends SurfaceView implements Runnable {
             dialog.show();
         });
     }
+
+
     public void showEndPopup(){
         gameStarted=false;
         ((Activity) getContext()).runOnUiThread(() -> {
@@ -1234,17 +1200,7 @@ public class GameView extends SurfaceView implements Runnable {
                     movingPlatforms.add(new MovingObstecle(mpd.x, mpd.y, mpd.width, mpd.height, mpd.rangeX, mpd.rangeY, mpd.speed, mpd.isTriggerBased));
             }
 
-            // Coins
-            this.coins.clear();
-            if (data.coins != null) {
-                for (int i = 0; i < data.coins.size(); i++) {
-                    Coin coin = new Coin(data.coins.get(i).toRect(), i);
-                    this.coins.add(coin);
-                }
-            }
-
-            this.totalCoinsInLevel = coins.size();
-            this.coinsCollected = 0;
+            //Coins
 
             // Moving spikes
             movingSpikes.clear();
@@ -1252,6 +1208,17 @@ public class GameView extends SurfaceView implements Runnable {
                 for (GameLevel.MovingObstecleData msd : data.movingSpikes)
                     movingSpikes.add(new MovingObstecle(msd.x, msd.y, msd.width, msd.height, msd.rangeX, msd.rangeY, msd.speed, msd.isTriggerBased));
             }
+
+            // Coins
+            coins.clear();
+            if (data.coins != null) {
+                for (int i = 0; i < data.coins.size(); i++) {
+                    Coin coin = new Coin(data.coins.get(i).toRect());
+                    coins.add(coin);
+                }
+            }
+            totalCoinsInLevel = coins.size();
+            coinsCollected = 0;
 
             // Checkpoints activated
             checkpointActivated.clear();
@@ -1311,7 +1278,7 @@ public class GameView extends SurfaceView implements Runnable {
                     coins.clear();
                     if (data.coins != null) {
                         for (int i = 0; i < data.coins.size(); i++) {
-                            Coin coin = new Coin(data.coins.get(i).toRect(), i);
+                            Coin coin = new Coin(data.coins.get(i).toRect());
                             coins.add(coin);
                         }
                     }
@@ -1358,6 +1325,7 @@ public class GameView extends SurfaceView implements Runnable {
             });
         }
     }
+
 
     private class MovingObstecle {
         Rect rect;
@@ -1442,47 +1410,40 @@ public class GameView extends SurfaceView implements Runnable {
 
         }
     }
+
     class Coin {
         Rect position;
         float rotationAngle = 0;
         float yOffset = 0;
         int alpha = 255;
-        int coinId;
         boolean isCollected = false;
         boolean isVisible = true;
 
-        public Coin(Rect position, int coinId) {
-                this.position = position;
-                this.coinId = coinId;
+        public Coin(Rect position) {
+            this.position = position;
         }
+
         void update() {
-            if (!isVisible) return;
-                if (isCollected) {
-                    rotationAngle += 20;
-                    yOffset -= 8;
-                    if (yOffset < -60) {
-                        alpha -= 5;
-                    }
-                    if (alpha <= 0) {
-                        alpha = 0;
-                        isVisible = false;
-                    }
+            if (isCollected && isVisible) {
+                rotationAngle += 15;
+                yOffset -= 5;
+                alpha -= 10;
+
+                if (alpha <= 0) {
+                    alpha = 0;
+                    isVisible = false;
                 }
-            }
-            void hideFromStart() {
-                isCollected = true;
-                isVisible = false;
-                alpha = 0;
-                yOffset = 0;
-                rotationAngle = 0;
-            }
-            void reset() {
-                rotationAngle = 0;
-                yOffset = 0;
-                alpha = 255;
-                isCollected = false;
-                isVisible = true;
             }
         }
 
+        void reset() {
+            rotationAngle = 0;
+            yOffset = 0;
+            alpha = 255;
+            isCollected = false;
+            isVisible = true;
+        }
     }
+
+}
+
