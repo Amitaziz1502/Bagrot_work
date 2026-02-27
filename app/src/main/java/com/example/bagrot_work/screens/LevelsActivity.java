@@ -1,29 +1,17 @@
 package com.example.bagrot_work.screens;
 
-import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
-
-import static java.security.AccessController.getContext;
-
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
 import com.example.bagrot_work.R;
 import com.example.bagrot_work.models.User;
 import com.example.bagrot_work.utils.SharedPreferencesUtil;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 public class LevelsActivity extends BaseActivity implements View.OnClickListener {
 
@@ -77,24 +65,28 @@ public class LevelsActivity extends BaseActivity implements View.OnClickListener
             return;
         }
 
+        Intent intent = new Intent(this, LevelActivity.class);
+
         if (v.getId() == R.id.btnLevel1) {
-            startActivity(new Intent(this, LevelOneActivity.class));
+            intent.putExtra("LEVEL", 1);
         }
         else if (v.getId() == R.id.btnLevel2) {
-            startActivity(new Intent(this, LevelTwoActivity.class));
+            intent.putExtra("LEVEL", 2);
         }
         else if (v.getId() == R.id.btnLevel3) {
-            startActivity(new Intent(this, LevelThreeActivity.class));
+            intent.putExtra("LEVEL", 3);
         }
         else if (v.getId() == R.id.btnLevel4) {
-            startActivity(new Intent(this, LevelFourActivity.class));
+            intent.putExtra("LEVEL", 4);
         }
         else if (v.getId() == R.id.btnLevel5) {
-            startActivity(new Intent(this, LevelFiveActivity.class));
+            intent.putExtra("LEVEL", 5);
         }
         else if (v.getId() == R.id.btnGoHome) {
             startActivity(new Intent(this, Home_page.class));
+            return;
         }
+        startActivity(intent);
     }
 
     //levels logic

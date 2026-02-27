@@ -4,11 +4,11 @@ import android.graphics.Rect;
 
 import androidx.annotation.NonNull;
 
-import com.example.bagrot_work.screens.GameView;
 import com.google.firebase.database.Exclude;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class GameLevel {
     public List<RectData> platforms;
@@ -63,9 +63,19 @@ public class GameLevel {
         public Rect toRect() {
             return new Rect(left, top, right, bottom);
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || getClass() != o.getClass()) return false;
+            CoinData coinData = (CoinData) o;
+            return id == coinData.id;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(id);
+        }
     }
-
-
 
     public static class MovingObstecleData {
         public int x, y, width, height, rangeX, rangeY;
@@ -104,7 +114,7 @@ public class GameLevel {
         GameLevel level = new GameLevel();
         switch(levelNumber){
             case 1:
-                level.worldWidth = 14500;
+                level.worldWidth = 3400;
                 level.levelTimeMillis = 120000;
 
                 level.coins.add(new CoinData(1,500, floorLevel - 300, 600, floorLevel - 200));

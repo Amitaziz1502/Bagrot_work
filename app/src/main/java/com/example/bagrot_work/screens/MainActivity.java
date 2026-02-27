@@ -38,6 +38,12 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
             return insets;
         });
 
+        for (int i = 1; i <= 4; i++) {
+            DatabaseService.getInstance().CreateNewLevel(i, 750);
+        }
+        DatabaseService.getInstance().CreateNewLevel(5, 100);
+
+
         if (SharedPreferencesUtil.isUserLoggedIn(MainActivity.this)) {
 
             Intent intent = new Intent(MainActivity.this, Home_page.class);
@@ -45,6 +51,8 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
             finish();
             return;
         }
+
+
 
         TextView register = findViewById(R.id.register_text);
         register.setOnClickListener(new View.OnClickListener() {

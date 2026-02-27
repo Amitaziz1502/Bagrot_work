@@ -20,30 +20,14 @@
             android:exported="false"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".screens.LevelFiveActivity"
-            android:exported="false"
-            android:screenOrientation="landscape" />
-        <activity
-            android:name=".screens.LevelFourActivity"
-            android:exported="false"
-            android:screenOrientation="landscape" />
-        <activity
             android:name=".screens.SplashActivity"
             android:exported="false"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".screens.LevelThreeActivity"
+            android:name=".screens.LevelActivity"
             android:exported="false"
             android:screenOrientation="landscape"
             android:theme="@style/Theme.Bagrot_work" />
-        <activity
-            android:name=".screens.LevelTwoActivity"
-            android:exported="false"
-            android:screenOrientation="landscape" />
-        <activity
-            android:name=".screens.LevelOneActivity"
-            android:exported="false"
-            android:screenOrientation="landscape" />
         <activity
             android:name=".screens.EditUser"
             android:exported="false"

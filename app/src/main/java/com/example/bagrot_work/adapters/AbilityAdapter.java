@@ -1,6 +1,7 @@
 package com.example.bagrot_work.adapters;
 
 import android.content.Context;
+import android.graphics.PorterDuff;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.bagrot_work.R;
 import com.example.bagrot_work.models.Abilities;
+import com.example.bagrot_work.models.User;
+import com.example.bagrot_work.screens.LevelActivity;
+import com.example.bagrot_work.utils.SharedPreferencesUtil;
 
 import java.util.List;
 
@@ -19,15 +23,17 @@ public class AbilityAdapter extends RecyclerView.Adapter<AbilityAdapter.ViewHold
     private Context context;
     private List<Abilities> abilitiesList;
     private OnAbilityClickListener listener;
+    private final User user;
 
     public interface OnAbilityClickListener {
         void onAbilityClick(Abilities ability);
     }
 
-    public AbilityAdapter(Context context, List<Abilities> abilitiesList, OnAbilityClickListener listener) {
+    public AbilityAdapter(Context context, List<Abilities> abilitiesList, OnAbilityClickListener listener, User user) {
         this.context = context;
         this.abilitiesList = abilitiesList;
         this.listener = listener;
+        this.user = user;
     }
 
     @NonNull
@@ -40,29 +46,53 @@ public class AbilityAdapter extends RecyclerView.Adapter<AbilityAdapter.ViewHold
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Abilities ability = abilitiesList.get(position);
+        boolean userHaveAbility = user.isInAbilityList(ability);
 
         holder.abilityName.setText(ability.name);
+        if(!userHaveAbility){
+            switch (ability) {
+                case doubleJump:
+                    holder.abilityImage.setImageResource(R.drawable.doublejump);
+                    holder.totalPrice.setText("doubleJump");
+                    break;
+                case fastRun:
+                    holder.abilityImage.setImageResource(R.drawable.race);
+                    holder.totalPrice.setText("fastRun");
+                    break;
+                default:
+                    holder.abilityImage.setImageResource(R.drawable.user);
+                    holder.totalPrice.setText("default");
+            }
 
-        // תמונות לפי סוג היכולת
-        switch (ability) {
-            case doubleJump:
-                holder.abilityImage.setImageResource(R.drawable.doublejump);
-                holder.totalPrice.setText("doubleJump");
-                break;
-            case fastRun:
-                holder.abilityImage.setImageResource(R.drawable.race);
-                holder.totalPrice.setText("fastRun");
-                break;
-            default:
-                holder.abilityImage.setImageResource(R.drawable.user);
-                holder.totalPrice.setText("default");
+            holder.totalPrice.setText(user.getWalletBalance()+"/100");
+        }
+        else{
+            switch (ability) {
+                case doubleJump:
+                    holder.abilityImage.setImageResource(R.drawable.doublejump);
+                    holder.abilityImage.setImageTintMode(PorterDuff.Mode.DARKEN);
+                    holder.totalPrice.setText("doubleJump");
+                    break;
+                case fastRun:
+                    holder.abilityImage.setImageResource(R.drawable.race);
+                    holder.abilityImage.setImageTintMode(PorterDuff.Mode.DARKEN);
+                    holder.totalPrice.setText("fastRun");
+                    break;
+                default:
+                    holder.abilityImage.setImageResource(R.drawable.user);
+                    holder.abilityImage.setImageTintMode(PorterDuff.Mode.DARKEN);
+                    holder.totalPrice.setText("default");
+            }
+
+            holder.totalPrice.setText("purchased!");
         }
 
-        holder.totalPrice.setText("100");
 
-        holder.managerButton.setOnClickListener(v -> {
+
+        holder.use_btn.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onAbilityClick(ability);
+                notifyDataSetChanged();
             }
         });
     }
@@ -74,13 +104,13 @@ public class AbilityAdapter extends RecyclerView.Adapter<AbilityAdapter.ViewHold
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView abilityImage;
-        ImageButton managerButton;
+        ImageButton use_btn;
         TextView abilityName, totalPrice;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             abilityImage = itemView.findViewById(R.id.ability_image);
-            managerButton = itemView.findViewById(R.id.manager);
+            use_btn = itemView.findViewById(R.id.use_btn);
             abilityName = itemView.findViewById(R.id.ability_name);
             totalPrice = itemView.findViewById(R.id.total_price);
         }

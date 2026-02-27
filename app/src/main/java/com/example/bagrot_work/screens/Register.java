@@ -30,6 +30,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Objects;
 
@@ -116,7 +117,7 @@ public class Register extends BaseActivity implements View.OnClickListener {
         DatabaseService databaseService = DatabaseService.getInstance();
         Log.d(TAG, "registerUser: Registering user...");
         String uid = databaseService.generateUserId();
-        User user = new User(uid, fName, lName, Username,Password, 1,false, defaultOp,false,0);
+        User user = new User(uid, fName, lName, Username,Password, 1,false, defaultOp,false, new ArrayList<>() ,0, new ArrayList<>());
         databaseService.checkIfUsernameExists(user.getUsername(), new DatabaseService.DatabaseCallback<Boolean>() {
             @Override
             public void onCompleted(Boolean exist) {

@@ -1,9 +1,7 @@
 package com.example.bagrot_work.screens;
 
 import static java.lang.Thread.sleep;
-import static java.security.AccessController.getContext;
 
-import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -18,8 +16,6 @@ import android.graphics.Rect;
 import android.graphics.Shader;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,35 +24,35 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
-import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
 
 import com.example.bagrot_work.R;
 import com.example.bagrot_work.models.Abilities;
 import com.example.bagrot_work.models.GameLevel;
-import com.example.bagrot_work.models.Abilities;
 import com.example.bagrot_work.models.User;
 import com.example.bagrot_work.services.DatabaseService;
 import com.example.bagrot_work.utils.SharedPreferencesUtil;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.MutableData;
-import com.google.firebase.database.Transaction;
-import com.google.firebase.database.ValueEventListener;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.UnaryOperator;
 
 
 public class GameView extends SurfaceView implements Runnable {
+
+
+
+    public interface OnGameViewEvents {
+      public void onGameFinish();
+      public void onCoinCollected(GameLevel.CoinData coin);
+        public boolean shouldShowCoin(GameLevel.CoinData coin);
+    }
 
     private Thread gameThread;
     private boolean isPlaying;
@@ -211,12 +207,16 @@ public class GameView extends SurfaceView implements Runnable {
     private int maxJumps = 2;
 
     private User currentUser;
+    private OnGameViewEvents onGameViewEvents;
+    private @Nullable GameLevel gameLevel;
 
-
-    public void setLevel(int level) {
+    public void setLevel(int level, GameLevel gameLevel) {
         this.currentLevel = level;
-        loadLevelFromCloud(level);
+        loadLevel(gameLevel);
+    }
 
+    public void setEvents(OnGameViewEvents onGameViewEvents) {
+        this.onGameViewEvents = onGameViewEvents;
     }
 
 
@@ -267,8 +267,9 @@ public class GameView extends SurfaceView implements Runnable {
         coinPaint = new Paint();
         coinPaint.setFilterBitmap(true);
         coinPaint.setAntiAlias(true);
-
     }
+
+
 
     public Abilities getAbility() {
         return ability;
@@ -412,7 +413,7 @@ public class GameView extends SurfaceView implements Runnable {
                 if (blackAlpha < 255) {
                     blackAlpha += 2;
                 }
-
+                this.onGameViewEvents.onGameFinish();
             }
             else {
                 if(getAbility() == Abilities.fastRun){
@@ -529,7 +530,6 @@ public class GameView extends SurfaceView implements Runnable {
                         }
                     }
                 }
-
                 //moving spikes
                 playerRect.set((int)playerX + 20, (int)playerY + 20, (int)(playerX + playerSize) - 20, (int)(playerY + playerSize));
 
@@ -554,11 +554,11 @@ public class GameView extends SurfaceView implements Runnable {
                         break;
                     }
                 }
-
                 if (onGround) {
                     jumps = 0;
                     isJumping = false;
                 }
+
                 // Spike check
                 for (Rect spike : spikes) {
                     if (playerX + playerSize > spike.left - 200 && playerX < spike.right + 200) {
@@ -568,22 +568,20 @@ public class GameView extends SurfaceView implements Runnable {
                         }
                     }
                 }
-
                 // Coin collision
                 for (Coin coin : coins) {
-                    if (!coin.isVisible) continue;
+                    if (!this.onGameViewEvents.shouldShowCoin(coin.coinData)) continue;
 
-                    if (Rect.intersects(playerRect, coin.position)) {
+                    if (Rect.intersects(playerRect, coin.getPosition())) {
                         coin.isCollected = true;
                         coin.isVisible = false;
                         coinsCollected++;
+                        // update coinData that user collide with this
+                        this.onGameViewEvents.onCoinCollected(coin.coinData);
                     }
 
                     coin.update();
                 }
-
-
-
                 // Checkpoint check
                 for (int i = 0; i < checkpoints.size(); i++) {
                     Rect cp = checkpoints.get(i);
@@ -631,6 +629,7 @@ public class GameView extends SurfaceView implements Runnable {
 
         updateParticles();
     }
+
 
     private void triggerDeath() {
         isDead = true;
@@ -778,23 +777,24 @@ public class GameView extends SurfaceView implements Runnable {
             }
             paint.setAlpha(255);
 
-            if (coins != null && coinImage != null) {
+                if (coins != null && coinImage != null) {
                 for (Coin coin : coins) {
-                    if (!coin.isVisible || coin.position.right < worldOffsetX || coin.position.left > worldOffsetX + getWidth()) continue;
+                    Rect coinPosition = coin.getPosition();
+                    if (!coin.isVisible || coinPosition.right < worldOffsetX || coinPosition.left > worldOffsetX + getWidth()) continue;
 
                     canvas.save();
                     coinPaint.setAlpha(coin.alpha);
 
-                    float centerX = coin.position.centerX();
-                    float centerY = coin.position.centerY() + coin.yOffset;
+                    float centerX = coinPosition.centerX();
+                    float centerY = coinPosition.centerY() + coin.yOffset;
 
                     canvas.rotate(coin.rotationAngle, centerX, centerY);
 
                     Rect drawRect = new Rect(
-                            coin.position.left,
-                            (int)(coin.position.top + coin.yOffset),
-                            coin.position.right,
-                            (int)(coin.position.bottom + coin.yOffset)
+                            coinPosition.left,
+                            (int)(coinPosition.top + coin.yOffset),
+                            coinPosition.right,
+                            (int)(coinPosition.bottom + coin.yOffset)
                     );
 
                     canvas.drawBitmap(coinImage, null, drawRect, coinPaint);
@@ -1094,7 +1094,8 @@ public class GameView extends SurfaceView implements Runnable {
                 customView.setAlpha(0f);
                 switch(currentLevel){
                     case 1:
-                        Intent goToLevelTwo = new Intent(getContext(), LevelTwoActivity.class);
+                        Intent goToLevelTwo = new Intent(getContext(), LevelActivity.class);
+                        goToLevelTwo.putExtra("LEVEL", 2);
                         getContext().startActivity(goToLevelTwo);
                         if (getContext() instanceof Activity) {
                             ((Activity) getContext()).finish();
@@ -1102,21 +1103,24 @@ public class GameView extends SurfaceView implements Runnable {
                         break;
 
                     case 2:
-                        Intent goToLevelThree = new Intent(getContext(), LevelThreeActivity.class);
+                        Intent goToLevelThree= new Intent(getContext(), LevelActivity.class);
+                        goToLevelThree.putExtra("LEVEL", 3);
                         getContext().startActivity(goToLevelThree);
                         if (getContext() instanceof Activity) {
                             ((Activity) getContext()).finish();
                         }
                         break;
                     case 3:
-                        Intent goToLevelFour = new Intent(getContext(), LevelFourActivity.class);
+                        Intent goToLevelFour= new Intent(getContext(), LevelActivity.class);
+                        goToLevelFour.putExtra("LEVEL", 4);
                         getContext().startActivity(goToLevelFour);
                         if (getContext() instanceof Activity) {
                             ((Activity) getContext()).finish();
                         }
                         break;
                     case 4:
-                        Intent goToLevelFive = new Intent(getContext(), LevelFiveActivity.class);
+                        Intent goToLevelFive= new Intent(getContext(), LevelActivity.class);
+                        goToLevelFive.putExtra("LEVEL", 5);
                         getContext().startActivity(goToLevelFive);
                         if (getContext() instanceof Activity) {
                             ((Activity) getContext()).finish();
@@ -1166,141 +1170,128 @@ public class GameView extends SurfaceView implements Runnable {
 
     private void createPlatforms() {
         this.currentUser = SharedPreferencesUtil.getUser(getContext());
-        int floorLevel = getHeight() - 200;
-        GameLevel data = GameLevel.getLevel(currentLevel, floorLevel);
+        GameLevel data = gameLevel;
+        if (gameLevel == null) return;
 
-        if (data != null) {
-            // Platforms
-            this.platforms.clear();
-            for (GameLevel.RectData rd : data.platforms)
-                this.platforms.add(rd.toRect());
+        // Platforms
+        this.platforms.clear();
+        for (GameLevel.RectData rd : data.platforms)
+            this.platforms.add(rd.toRect());
 
-            // Spikes
-            this.spikes.clear();
-            for (GameLevel.RectData sd : data.spikes)
-                this.spikes.add(sd.toRect());
+        // Spikes
+        this.spikes.clear();
+        for (GameLevel.RectData sd : data.spikes)
+            this.spikes.add(sd.toRect());
 
-            // Checkpoints
-            this.checkpoints.clear();
-            for (GameLevel.RectData cd : data.checkpoints)
-                this.checkpoints.add(cd.toRect());
+        // Checkpoints
+        this.checkpoints.clear();
+        for (GameLevel.RectData cd : data.checkpoints)
+            this.checkpoints.add(cd.toRect());
 
-            this.worldWidth = data.worldWidth;
-            this.timeLeftMillis = data.levelTimeMillis;
+        this.worldWidth = data.worldWidth;
+        this.timeLeftMillis = data.levelTimeMillis;
 
-            // Floating texts
-            this.floatingTexts.clear();
-            for (GameLevel.FloatingTextData ft : data.floatingTexts)
-                this.floatingTexts.add(new FloatingText(ft.text, ft.x, ft.y));
+        // Floating texts
+        this.floatingTexts.clear();
+        for (GameLevel.FloatingTextData ft : data.floatingTexts)
+            this.floatingTexts.add(new FloatingText(ft.text, ft.x, ft.y));
 
-            // Moving platforms
-            movingPlatforms.clear();
-            if (data.movingPlatforms != null) {
-                for (GameLevel.MovingObstecleData mpd : data.movingPlatforms)
-                    movingPlatforms.add(new MovingObstecle(mpd.x, mpd.y, mpd.width, mpd.height, mpd.rangeX, mpd.rangeY, mpd.speed, mpd.isTriggerBased));
-            }
+        // Moving platforms
+        movingPlatforms.clear();
+        if (data.movingPlatforms != null) {
+            for (GameLevel.MovingObstecleData mpd : data.movingPlatforms)
+                movingPlatforms.add(new MovingObstecle(mpd.x, mpd.y, mpd.width, mpd.height, mpd.rangeX, mpd.rangeY, mpd.speed, mpd.isTriggerBased));
+        }
 
-            //Coins
+        // Moving spikes
+        movingSpikes.clear();
+        if (data.movingSpikes != null) {
+            for (GameLevel.MovingObstecleData msd : data.movingSpikes)
+                movingSpikes.add(new MovingObstecle(msd.x, msd.y, msd.width, msd.height, msd.rangeX, msd.rangeY, msd.speed, msd.isTriggerBased));
+        }
 
-            // Moving spikes
-            movingSpikes.clear();
-            if (data.movingSpikes != null) {
-                for (GameLevel.MovingObstecleData msd : data.movingSpikes)
-                    movingSpikes.add(new MovingObstecle(msd.x, msd.y, msd.width, msd.height, msd.rangeX, msd.rangeY, msd.speed, msd.isTriggerBased));
-            }
-
-            // Coins
-            coins.clear();
-            if (data.coins != null) {
-                for (int i = 0; i < data.coins.size(); i++) {
-                    Coin coin = new Coin(data.coins.get(i).toRect());
+        // Coins
+        coins.clear();
+        if (data.coins != null) {
+            for (GameLevel.CoinData coinData: data.coins) {
+                if (this.onGameViewEvents.shouldShowCoin(coinData)) {
+                    Coin coin = new Coin(coinData);
                     coins.add(coin);
                 }
             }
-            totalCoinsInLevel = coins.size();
-            coinsCollected = 0;
-
-            // Checkpoints activated
-            checkpointActivated.clear();
-            for (Rect r : checkpoints) checkpointActivated.add(false);
         }
+        totalCoinsInLevel = coins.size();
+        coinsCollected = 0;
+
+        // Checkpoints activated
+        checkpointActivated.clear();
+        for (Rect r : checkpoints) checkpointActivated.add(false);
     }
 
-    private void loadLevelFromCloud(int levelNumber) {
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("levels").child("level_" + levelNumber);
+    private void loadLevel(@NotNull GameLevel gameLevel) {
+        this.gameLevel = gameLevel;
 
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                GameLevel data = snapshot.getValue(GameLevel.class);
-                if (data != null) {
+        // Platforms
+        platforms.clear();
+        for (GameLevel.RectData rd : gameLevel.platforms)
+            platforms.add(rd.toRect());
 
-                    // Platforms
-                    platforms.clear();
-                    for (GameLevel.RectData rd : data.platforms)
-                        platforms.add(rd.toRect());
+        // Spikes
+        spikes.clear();
+        for (GameLevel.RectData sd : gameLevel.spikes)
+            spikes.add(sd.toRect());
 
-                    // Spikes
-                    spikes.clear();
-                    for (GameLevel.RectData sd : data.spikes)
-                        spikes.add(sd.toRect());
+        // Checkpoints
+        checkpoints.clear();
+        if (gameLevel.checkpoints != null) {
+            for (GameLevel.RectData cd : gameLevel.checkpoints)
+                checkpoints.add(cd.toRect());
+        }
 
-                    // Checkpoints
-                    checkpoints.clear();
-                    if (data.checkpoints != null) {
-                        for (GameLevel.RectData cd : data.checkpoints)
-                            checkpoints.add(cd.toRect());
-                    }
+        // Floating texts
+        floatingTexts.clear();
+        if (gameLevel.floatingTexts != null) {
+            for (GameLevel.FloatingTextData ft : gameLevel.floatingTexts)
+                floatingTexts.add(new FloatingText(ft.text, ft.x, ft.y));
+        }
 
-                    // Floating texts
-                    floatingTexts.clear();
-                    if (data.floatingTexts != null) {
-                        for (GameLevel.FloatingTextData ft : data.floatingTexts)
-                            floatingTexts.add(new FloatingText(ft.text, ft.x, ft.y));
-                    }
+        // Moving platforms
+        movingPlatforms.clear();
+        if (gameLevel.movingPlatforms != null) {
+            for (GameLevel.MovingObstecleData mpd : gameLevel.movingPlatforms)
+                movingPlatforms.add(new MovingObstecle(mpd.x, mpd.y, mpd.width, mpd.height,
+                        mpd.rangeX, mpd.rangeY, mpd.speed, mpd.isTriggerBased));
+        }
 
-                    // Moving platforms
-                    movingPlatforms.clear();
-                    if (data.movingPlatforms != null) {
-                        for (GameLevel.MovingObstecleData mpd : data.movingPlatforms)
-                            movingPlatforms.add(new MovingObstecle(mpd.x, mpd.y, mpd.width, mpd.height,
-                                    mpd.rangeX, mpd.rangeY, mpd.speed, mpd.isTriggerBased));
-                    }
+        // Moving spikes
+        movingSpikes.clear();
+        if (gameLevel.movingSpikes != null) {
+            for (GameLevel.MovingObstecleData msd : gameLevel.movingSpikes)
+                movingSpikes.add(new MovingObstecle(msd.x, msd.y, msd.width, msd.height, msd.rangeX, 0, msd.speed, msd.isTriggerBased));
+        }
 
-                    // Moving spikes
-                    movingSpikes.clear();
-                    if (data.movingSpikes != null) {
-                        for (GameLevel.MovingObstecleData msd : data.movingSpikes)
-                            movingSpikes.add(new MovingObstecle(msd.x, msd.y, msd.width, msd.height, msd.rangeX, 0, msd.speed, msd.isTriggerBased));
-                    }
-
-                    // Coins
-                    coins.clear();
-                    if (data.coins != null) {
-                        for (int i = 0; i < data.coins.size(); i++) {
-                            Coin coin = new Coin(data.coins.get(i).toRect());
-                            coins.add(coin);
-                        }
-                    }
-                    totalCoinsInLevel = coins.size();
-                    coinsCollected = 0;
-
-                    // Checkpoints activated
-                    checkpointActivated.clear();
-                    for (Rect r : checkpoints) checkpointActivated.add(false);
-
-                    worldWidth = data.worldWidth;
-                    timeLeftMillis = data.levelTimeMillis;
-
-                    postInvalidate();
+        // Coins
+        coins.clear();
+        if (gameLevel.coins != null) {
+            for (int i = 0; i < gameLevel.coins.size(); i++) {
+                GameLevel.CoinData coinData = gameLevel.coins.get(i);
+                if (this.onGameViewEvents.shouldShowCoin(coinData)) {
+                    Coin coin = new Coin(gameLevel.coins.get(i));
+                    coins.add(coin);
                 }
             }
+        }
+        totalCoinsInLevel = coins.size();
+        coinsCollected = 0;
 
-            @Override
-            public void onCancelled(DatabaseError error) {
-                Log.e("DB", "Failed to load level", error.toException());
-            }
-        });
+        // Checkpoints activated
+        checkpointActivated.clear();
+        for (Rect r : checkpoints) checkpointActivated.add(false);
+
+        worldWidth = gameLevel.worldWidth;
+        timeLeftMillis = gameLevel.levelTimeMillis;
+
+        postInvalidate();
     }
 
 
@@ -1412,15 +1403,17 @@ public class GameView extends SurfaceView implements Runnable {
     }
 
     class Coin {
-        Rect position;
+        GameLevel.CoinData coinData;
         float rotationAngle = 0;
         float yOffset = 0;
         int alpha = 255;
         boolean isCollected = false;
         boolean isVisible = true;
 
-        public Coin(Rect position) {
-            this.position = position;
+
+
+        public Coin(GameLevel.CoinData coinData) {
+            this.coinData = coinData;
         }
 
         void update() {
@@ -1443,6 +1436,11 @@ public class GameView extends SurfaceView implements Runnable {
             isCollected = false;
             isVisible = true;
         }
+
+        Rect getPosition() {
+            return this.coinData.toRect();
+        }
+
     }
 
 }

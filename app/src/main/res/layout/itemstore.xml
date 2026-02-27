@@ -43,7 +43,7 @@
             android:id="@+id/total_price"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="100"
+            android:text="price/total"
             android:textColor="#F6F6F8"
             android:textSize="18sp"
             app:layout_constraintStart_toStartOf="@id/ability_name"
@@ -59,7 +59,7 @@
             app:layout_constraintBottom_toBottomOf="@id/total_price"/>
 
         <ImageButton
-            android:id="@+id/manager"
+            android:id="@+id/use_btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@android:color/transparent"

@@ -1,6 +1,9 @@
 package com.example.bagrot_work.models;
 
+import com.google.firebase.database.Exclude;
+
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class User implements Serializable {
@@ -12,11 +15,18 @@ public class User implements Serializable {
     private boolean isAdmin;
     private Abilities appearance;
     private Integer currentlevel;
-    private Integer totalCoins;
+    private ArrayList<Abilities> collectedAbilities;
+    private int walletBalance;
     private boolean mainAdmin;
-    public User(){}
+    private ArrayList<GameLevel.CoinData> collectedCoins;
 
-    public User(String id, String firstname, String lastname, String username, String password, Integer currentlevel, boolean isAdmin, Abilities appearance, boolean mainAdmin,Integer totalCoins) {
+    public User(){
+        collectedCoins = new ArrayList<>();
+        collectedAbilities = new ArrayList<>();
+    }
+
+    public User(String id, String firstname, String lastname, String username, String password, Integer currentlevel,
+                boolean isAdmin, Abilities appearance, boolean mainAdmin, ArrayList<GameLevel.CoinData> collectedCoins, int walletBalance, ArrayList<Abilities> collectedAbilities) {
         this.id = id;
         this.firstname = firstname;
         this.lastname = lastname;
@@ -26,7 +36,9 @@ public class User implements Serializable {
         this.currentlevel = currentlevel;
         this.appearance = appearance;
         this.mainAdmin = mainAdmin;
-        this.totalCoins = totalCoins;
+        this.collectedCoins = collectedCoins;
+        this.collectedAbilities = collectedAbilities;
+        this.walletBalance = walletBalance;
     }
 
     public String getId() {return id;}
@@ -87,13 +99,17 @@ public class User implements Serializable {
     public boolean isMainAdmin() {
         return mainAdmin;
     }
-    public Integer getTotalCoins() {
-        return totalCoins;
+
+
+
+    public ArrayList<GameLevel.CoinData> getCollectedCoins() {
+        return collectedCoins;
     }
 
-    public void setTotalCoins(Integer totalCoins) {
-        this.totalCoins = totalCoins;
+    public void setCollectedCoins(ArrayList<GameLevel.CoinData> collectedCoins) {
+        this.collectedCoins = collectedCoins;
     }
+
 
 
     @Override
@@ -108,5 +124,33 @@ public class User implements Serializable {
         return Objects.hashCode(id);
     }
 
+    @Exclude
+    public int getTotalCoins() {
+        return collectedCoins.size();
+    }
 
+    public int getWalletBalance() {
+        return walletBalance;
+    }
+
+    public void setWalletBalance(int walletBalance) {
+        this.walletBalance = walletBalance;
+    }
+
+    public ArrayList<Abilities> getCollectedAbilities() {
+        if (this.collectedAbilities == null)
+            this.collectedAbilities = new ArrayList<>();
+        return collectedAbilities;
+    }
+
+    public void setCollectedAbilities(ArrayList<Abilities> collectedAbilities) {
+        this.collectedAbilities = collectedAbilities;
+    }
+
+    public boolean isInAbilityList(Abilities ability) {
+        if (collectedAbilities == null || ability == null) {
+            return false;
+        }
+        return collectedAbilities.contains(ability);
+    }
 }
