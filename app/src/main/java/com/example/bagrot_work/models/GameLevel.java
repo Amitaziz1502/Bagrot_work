@@ -114,12 +114,19 @@ public class GameLevel {
         GameLevel level = new GameLevel();
         switch(levelNumber){
             case 1:
-                level.worldWidth = 3400;
+                level.worldWidth = 14500;
                 level.levelTimeMillis = 120000;
 
                 level.coins.add(new CoinData(1,500, floorLevel - 300, 600, floorLevel - 200));
-                level.coins.add(new CoinData(2,2400, floorLevel - 300, 2460, floorLevel - 200));
+                level.coins.add(new CoinData(2,2400, floorLevel - 300, 2500, floorLevel - 200));
                 level.coins.add(new CoinData(3,3000, floorLevel - 300, 3100, floorLevel - 200));
+                level.coins.add(new CoinData(4,3700, floorLevel - 350, 3800, floorLevel - 250));
+                level.coins.add(new CoinData(5,6100, floorLevel - 350, 6200, floorLevel - 250));
+                level.coins.add(new CoinData(6,6700, floorLevel - 350, 6800, floorLevel - 250));
+                level.coins.add(new CoinData(7,7300, floorLevel - 350, 7400, floorLevel - 250));
+                level.coins.add(new CoinData(8,10000, floorLevel - 300, 10100, floorLevel - 200));
+                level.coins.add(new CoinData(9,12000, floorLevel-100 , 12100, floorLevel ));
+                level.coins.add(new CoinData(10,13000, floorLevel-100 , 13100, floorLevel ));
 
                 //Texts
                 level.floatingTexts.add(new FloatingTextData("Welcome to my game! ", 400, floorLevel - 500));
@@ -156,13 +163,24 @@ public class GameLevel {
                 level.worldWidth = 20000;
                 level.levelTimeMillis = 120000;
 
-                level.coins.add(new CoinData(4,1900, floorLevel-200, 2000, floorLevel-100));
+                level.coins.add(new CoinData(11,2000, floorLevel-300, 2100, floorLevel-200));
+                level.coins.add(new CoinData(12,2600, floorLevel-450, 2700, floorLevel-350));
+                level.coins.add(new CoinData(13,3900, floorLevel-700, 4000, floorLevel-600));
+                level.coins.add(new CoinData(14,4900, floorLevel-400, 5000, floorLevel-300));
+                level.coins.add(new CoinData(15,7100, floorLevel-700, 7200, floorLevel-600));
+                level.coins.add(new CoinData(16,8500, floorLevel-950, 8600, floorLevel-850));
+                level.coins.add(new CoinData(17,13850, floorLevel-300, 13950, floorLevel-200));
+                level.coins.add(new CoinData(18,15600, floorLevel-500, 15700, floorLevel-400));
+                level.coins.add(new CoinData(19,16500, floorLevel-500, 16600, floorLevel-400));
+                level.coins.add(new CoinData(20,17400, floorLevel-500, 17500, floorLevel-400));
+
+
 
                 //Platforms
                 level.platforms.add(new RectData(1900, 600, 2200, 650));
                 level.platforms.add(new RectData(2500, 450, 2800, 500));
                 level.platforms.add(new RectData(3100, 300, 4500, 350));
-                level.platforms.add(new RectData(4500, 300, 4600, 750));
+                level.platforms.add(new RectData(4500, 300, 4600, 750));//
                 level.platforms.add(new RectData(6300, floorLevel - 100, 6400, floorLevel));
                 level.platforms.add(new RectData(6700, floorLevel - 300, 6800, floorLevel));
                 level.platforms.add(new RectData(7100, floorLevel - 500, 7200, floorLevel));
@@ -212,6 +230,18 @@ public class GameLevel {
                 level.checkpoints.add(new RectData(9800, floorLevel - 100, 9900, floorLevel ));
                 level.checkpoints.add(new RectData(14500, floorLevel - 1500, 14600, floorLevel - 1400 ));
 
+                level.coins.add(new CoinData(21,1000, floorLevel-400, 1100, floorLevel-300));
+                level.coins.add(new CoinData(22,2000, floorLevel-500, 2100, floorLevel-400));
+                level.coins.add(new CoinData(23,3900, floorLevel-700, 4000, floorLevel-600));
+                level.coins.add(new CoinData(24,5000, floorLevel-600, 5100, floorLevel-500));
+                level.coins.add(new CoinData(25,6200, floorLevel-500, 6300, floorLevel-400));
+                level.coins.add(new CoinData(26,9150, floorLevel-600, 9250, floorLevel-500));
+                level.coins.add(new CoinData(27,13500, floorLevel-600, 13600, floorLevel-500));
+                level.coins.add(new CoinData(28,13500, floorLevel-1100, 13600, floorLevel-1000));
+                level.coins.add(new CoinData(29,16850, floorLevel-1200, 16950, floorLevel-1100));
+                level.coins.add(new CoinData(30,18400, floorLevel-1000, 18500, floorLevel-900));
+
+
 
                 //Spikes
                 level.spikes.add(new RectData(500, floorLevel - 100, 9000, floorLevel));
@@ -254,7 +284,7 @@ public class GameLevel {
                 level.platforms.add(new RectData(15500, floorLevel - 1400, 15600, floorLevel));
                 level.platforms.add(new RectData(14000, floorLevel - 1400, 15600, floorLevel-1350));
                 level.platforms.add(new RectData(16100, floorLevel - 1200, 16300, floorLevel-1150));
-                level.platforms.add(new RectData(16800, floorLevel - 1100, 17000, floorLevel-1050));
+                level.platforms.add(new RectData(16800, floorLevel - 1100, 17000, floorLevel-1050));//
                 level.platforms.add(new RectData(17500, floorLevel - 1000, 17700, floorLevel-950));
                 level.platforms.add(new RectData(18200, floorLevel - 900, 18700, floorLevel-850));
                 level.platforms.add(new RectData(19200, floorLevel - 800, 23000, floorLevel-750));
@@ -297,6 +327,17 @@ public class GameLevel {
                 level.platforms.add(new RectData(17600, floorLevel - 1600, 17800, floorLevel-1550));
                 level.platforms.add(new RectData(18200, floorLevel - 1600, 21000, floorLevel-1550));
 
+                //coins
+                level.coins.add(new CoinData(31,900, floorLevel-500, 1000, floorLevel-400));
+                level.coins.add(new CoinData(32,2200, floorLevel-900, 2300, floorLevel-800));
+                level.coins.add(new CoinData(33,3400, floorLevel-900, 3500, floorLevel-800));
+                level.coins.add(new CoinData(34,6500, floorLevel-1300, 6600, floorLevel-1200));
+                level.coins.add(new CoinData(35,9950, floorLevel-700, 10050, floorLevel-600));
+                level.coins.add(new CoinData(36,12900, floorLevel-700, 13000, floorLevel-600));
+                level.coins.add(new CoinData(37,14050, floorLevel-900, 14150, floorLevel-800));
+                level.coins.add(new CoinData(38,15700, floorLevel-1400, 15800, floorLevel-1300));
+                level.coins.add(new CoinData(39,15000, floorLevel-1400, 15100, floorLevel-1300));
+                level.coins.add(new CoinData(40,17650, floorLevel-1700, 17750, floorLevel-1600));
 
 
                 //spikes
@@ -357,6 +398,19 @@ public class GameLevel {
                 level.platforms.add(new RectData(2800, floorLevel - 8000, 5500, floorLevel-7950));
 
 
+                //coins
+                level.coins.add(new CoinData(41,2150, floorLevel-1050, 2250, floorLevel-950));
+                level.coins.add(new CoinData(42,1000, floorLevel-1200, 1100, floorLevel-1100));
+                level.coins.add(new CoinData(43,2300, floorLevel-2000, 2400, floorLevel-1900));
+                level.coins.add(new CoinData(44,1500, floorLevel-3300, 1600, floorLevel-3200));
+                level.coins.add(new CoinData(45,900, floorLevel-4000, 1000, floorLevel-3900));
+                level.coins.add(new CoinData(46,1600, floorLevel-5200, 1700, floorLevel-5100));
+                level.coins.add(new CoinData(47,900, floorLevel-6300, 1000, floorLevel-6200));
+                level.coins.add(new CoinData(48,2100, floorLevel-6800, 2200, floorLevel-6700));
+                level.coins.add(new CoinData(49,1500, floorLevel-7200, 1600, floorLevel-6700));
+                level.coins.add(new CoinData(50,2050, floorLevel-7900, 2150, floorLevel-7800));
+
+
 
                 //spikes
                 level.spikes.add(new RectData(2150, floorLevel - 875, 2225, floorLevel - 800));
@@ -364,7 +418,7 @@ public class GameLevel {
                 level.spikes.add(new RectData(1300, floorLevel - 3900, 1600, floorLevel - 3800));
                 level.spikes.add(new RectData(900, floorLevel - 4300, 1100, floorLevel - 4200));
                 level.spikes.add(new RectData(1600, floorLevel - 4300, 1700, floorLevel - 4200));
-                level.spikes.add(new RectData(1200, floorLevel - 4700, 1500, floorLevel - 4600));
+                level.spikes.add(new RectData(1200, floorLevel - 4700, 1500, floorLevel - 4600));//
                 level.spikes.add(new RectData(1000, floorLevel - 5100, 1100, floorLevel - 5000));
                 level.spikes.add(new RectData(1500, floorLevel - 5100, 1600, floorLevel - 5000));
                 level.spikes.add(new RectData(900, floorLevel - 5600, 1500, floorLevel - 5500));

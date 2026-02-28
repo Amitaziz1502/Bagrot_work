@@ -532,8 +532,7 @@ public class GameView extends SurfaceView implements Runnable {
                 }
                 //moving spikes
                 playerRect.set((int)playerX + 20, (int)playerY + 20, (int)(playerX + playerSize) - 20, (int)(playerY + playerSize));
-
-                // moving spikes round check
+                //setting spike circle
                 for (MovingObstecle ms : movingSpikes) {
                     ms.update();
 
@@ -545,13 +544,17 @@ public class GameView extends SurfaceView implements Runnable {
 
                     float dx = playerCenterX - spikeCenterX;
                     float dy = playerCenterY - spikeCenterY;
-                    double distance = Math.sqrt(dx * dx + dy * dy);
 
-                    float collisionRadius = (ms.width / 2f);
+                    float distanceSquared = (dx * dx) + (dy * dy);
 
-                    if (distance < collisionRadius) {
+                    float playerRadius = playerSize / 2f;
+                    float spikeRadius = ms.width / 2f;
+                    float minDistance = playerRadius + spikeRadius;
+
+                    float minDistanceSquared = minDistance * minDistance;
+
+                    if (distanceSquared < minDistanceSquared) {
                         triggerDeath();
-                        break;
                     }
                 }
                 if (onGround) {
@@ -777,10 +780,14 @@ public class GameView extends SurfaceView implements Runnable {
             }
             paint.setAlpha(255);
 
-                if (coins != null && coinImage != null) {
+            if (coins != null && coinImage != null) {
                 for (Coin coin : coins) {
                     Rect coinPosition = coin.getPosition();
-                    if (!coin.isVisible || coinPosition.right < worldOffsetX || coinPosition.left > worldOffsetX + getWidth()) continue;
+
+                    boolean isVisibleOnScreen = coinPosition.right > (worldOffsetX - 100) &&
+                            coinPosition.left < (worldOffsetX + getWidth() + 100);
+
+                    if (!coin.isVisible || !isVisibleOnScreen) continue;
 
                     canvas.save();
                     coinPaint.setAlpha(coin.alpha);
@@ -935,7 +942,7 @@ public class GameView extends SurfaceView implements Runnable {
 
 
             //Score
-            if (coinImage != null) {
+            if (coinImage != null && totalCoinsInLevel != 0) {
                 int xPos = getWidth() - 700;
                 int yPos = getHeight()-850;
                 canvas.drawBitmap(coinImage, null, new Rect(xPos, yPos - 60, xPos + 60, yPos), null);

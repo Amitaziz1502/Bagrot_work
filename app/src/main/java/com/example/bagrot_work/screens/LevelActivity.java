@@ -51,7 +51,7 @@ public class LevelActivity extends BaseActivity implements View.OnClickListener 
                     public User apply(User serverUser) {
                         if (serverUser == null) return null;
                         serverUser.setCollectedCoins(user.getCollectedCoins());
-                        user.setWalletBalance(user.getCollectedCoins().size());
+                        serverUser.setWalletBalance(user.getCollectedCoins().size());
                         return serverUser;
                     }
                 }, new DatabaseService.DatabaseCallback<Void>() {

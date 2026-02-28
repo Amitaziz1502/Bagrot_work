@@ -41,7 +41,7 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
         for (int i = 1; i <= 4; i++) {
             DatabaseService.getInstance().CreateNewLevel(i, 750);
         }
-        DatabaseService.getInstance().CreateNewLevel(5, 100);
+        DatabaseService.getInstance().CreateNewLevel(5, 650);
 
 
         if (SharedPreferencesUtil.isUserLoggedIn(MainActivity.this)) {
