@@ -25,6 +25,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 
 import com.example.bagrot_work.R;
 import com.example.bagrot_work.models.Abilities;
@@ -140,6 +141,10 @@ public class GameView extends SurfaceView implements Runnable {
     private long lastJumpFrameTime = 0;
 
 
+    //hearts
+    private ImageView[] hearts;
+    private int currentLives = 5;
+
     // FPS control
     private final int FPS = 60;
     private final int FRAME_TIME = 1000 / FPS;
@@ -180,6 +185,9 @@ public class GameView extends SurfaceView implements Runnable {
 
     //checking what level your in
     private int currentLevel = 1;
+
+    //hearts
+
 
     // Coins properties
     private List<Coin> coins = new ArrayList<>();
@@ -267,9 +275,13 @@ public class GameView extends SurfaceView implements Runnable {
         coinPaint = new Paint();
         coinPaint.setFilterBitmap(true);
         coinPaint.setAntiAlias(true);
+
     }
 
 
+    public void setHearts(ImageView[] heartsArray) {
+        this.hearts = heartsArray;
+    }
 
     public Abilities getAbility() {
         return ability;
@@ -595,37 +607,6 @@ public class GameView extends SurfaceView implements Runnable {
                     }
                 }
 
-                // Time properties
-                if (gameStarted) {
-                    timeLeftMillis -= FRAME_TIME;
-                    if (timeLeftMillis <= 10000) {
-                        textPaint.setColor(textFinalTime);
-                    }
-                    if (timeLeftMillis <= 0) {
-                        timeLeftMillis = 0;
-                        isDead = true;
-                        particles.clear();
-                        for (int i = 0; i < 20; i++) {
-                            particles.add(new Particle(playerX + playerSize/2, playerY + playerSize/2));
-                        }
-                        playerX = 200;
-                        playerY = 500;
-                        savedCheckpointX = playerX;
-                        savedCheckpointY = playerY;
-                        for (int i = 0; i < checkpointActivated.size(); i++) {
-                            checkpointActivated.set(i, false);
-                        }
-                        timeLeftMillis = 120000;
-                        isDead = false;
-                        textPaint.setColor(Color.WHITE);
-                    }
-                }
-
-                int minutes = (int) (timeLeftMillis / 60000);
-                int seconds = (int) (timeLeftMillis % 60000) / 1000;
-                int millis  = (int) (timeLeftMillis % 1000) / 10;
-                timeText = String.format("%02d:%02d:%02d", minutes, seconds, millis);
-
                 updateCamera();
             }
         }
@@ -634,9 +615,36 @@ public class GameView extends SurfaceView implements Runnable {
     }
 
 
+    private void takeDamage() {
+        if (currentLives > 0) {
+            currentLives--;
+            updateHeartsUI();
+        }
+
+        if (currentLives == 0) {
+            return;
+        }
+    }
+    private void updateHeartsUI() {
+        if (hearts == null) return;
+
+        ((Activity) getContext()).runOnUiThread(() -> {
+            for (int i = 0; i < hearts.length; i++) {
+                if (hearts[i] != null) {
+                    if (i < currentLives) {
+                        hearts[i].setImageResource(R.drawable.full_heart);
+                    } else {
+                        hearts[i].setImageResource(R.drawable.empty_heart);
+                    }
+                }
+            }
+        });
+    }
+
     private void triggerDeath() {
         isDead = true;
         particles.clear();
+        takeDamage();
         for (int i = 0; i < 30; i++) {
             particles.add(new Particle(playerX + playerSize/2, playerY + playerSize/2));
         }
@@ -935,11 +943,6 @@ public class GameView extends SurfaceView implements Runnable {
 
             paint.setColor(main_color);
             canvas.restore();
-            //Drawing clock
-            if(currentLevel!=5){
-                canvas.drawText(timeText, 50, 100, textPaint);
-            }
-
 
             //Score
             if (coinImage != null && totalCoinsInLevel != 0) {
@@ -1052,6 +1055,11 @@ public class GameView extends SurfaceView implements Runnable {
             btnExit.setOnClickListener(v -> {
                 Intent exit_intent = new Intent(getContext(), LevelsActivity.class);
                 getContext().startActivity(exit_intent);
+            });
+
+            ImageButton btnRestart = customView.findViewById(R.id.retry);
+            btnRestart.setOnClickListener(v -> {
+
             });
 
             dialog.show();

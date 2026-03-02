@@ -64,7 +64,7 @@ public class AbilityAdapter extends RecyclerView.Adapter<AbilityAdapter.ViewHold
                     holder.totalPrice.setText("default");
             }
 
-            holder.totalPrice.setText(user.getWalletBalance()+"/100");
+            holder.totalPrice.setText(user.getWalletBalance()+"/"+ability.price);
         }
         else{
             switch (ability) {

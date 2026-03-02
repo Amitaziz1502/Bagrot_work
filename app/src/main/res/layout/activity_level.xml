@@ -6,7 +6,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".screens.LevelOneActivity">
+    tools:context=".screens.LevelActivity">
 
     <com.example.bagrot_work.screens.GameView
         android:id="@+id/gameView"
@@ -57,5 +57,44 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/pause" />
+
+    <LinearLayout
+        android:id="@+id/heartsContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <ImageView
+            android:id="@+id/heart1"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/full_heart" />
+
+        <ImageView
+            android:id="@+id/heart2"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/full_heart" />
+
+        <ImageView
+            android:id="@+id/heart3"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/full_heart" />
+
+        <ImageView
+            android:id="@+id/heart4"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/full_heart" />
+
+        <ImageView
+            android:id="@+id/heart5"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/full_heart" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

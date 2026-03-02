@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.core.graphics.Insets;
@@ -23,6 +24,8 @@ import java.util.function.UnaryOperator;
 public class LevelActivity extends BaseActivity implements View.OnClickListener {
     private GameView gameView;
     private ImageButton moveRight, moveLeft, exit;
+    private ImageView[] hearts;
+    private int currentLives = 5;
     User user;
 
     int level;
@@ -37,12 +40,22 @@ public class LevelActivity extends BaseActivity implements View.OnClickListener 
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        hearts = new ImageView[]{
+                findViewById(R.id.heart1),
+                findViewById(R.id.heart2),
+                findViewById(R.id.heart3),
+                findViewById(R.id.heart4),
+                findViewById(R.id.heart5)
+        };
+
         level = getIntent().getIntExtra("LEVEL", 1);
 
         gameView = findViewById(R.id.gameView);
 
+
         user = SharedPreferencesUtil.getUser(LevelActivity.this);
         gameView.setAbility(user.getAppearance());
+        gameView.setHearts(hearts);
         gameView.setEvents(new GameView.OnGameViewEvents() {
             @Override
             public void onGameFinish() {
@@ -135,5 +148,6 @@ public class LevelActivity extends BaseActivity implements View.OnClickListener 
 
         }
     }
+
 
 }
