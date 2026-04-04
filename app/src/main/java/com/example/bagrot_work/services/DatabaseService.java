@@ -327,9 +327,9 @@ public class DatabaseService {
         });
     }
 
-    public void CreateNewLevel(int levelNumber, int floorLevel) {
+    public void CreateNewLevel(int levelNumber, int floorLevel, DatabaseCallback<Void> callback) {
         GameLevel levelData = GameLevel.getLevel(levelNumber, floorLevel);
-        writeData(GAME_LEVEL_PATH + "/" + levelNumber, levelData, null);
+        writeData(GAME_LEVEL_PATH + "/" + levelNumber, levelData, callback);
     }
 
     public void getLevel(final int levelNumber, @NotNull final DatabaseCallback<GameLevel> callback) {

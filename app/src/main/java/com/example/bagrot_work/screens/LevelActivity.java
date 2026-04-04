@@ -1,17 +1,21 @@
 package com.example.bagrot_work.screens;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.example.bagrot_work.R;
 import com.example.bagrot_work.models.GameLevel;
@@ -32,11 +36,13 @@ public class LevelActivity extends BaseActivity implements View.OnClickListener 
     private GameView gameView;
     private ImageButton moveRight, moveLeft, exit;
     private ImageView[] hearts;
-    private int currentLives = 5;
+    private DrawerLayout drawerLayout;
+    private LinearLayout drawerMenu;
     User user;
 
     int level;
-    public static InterstitialAd mInterstitialAd; 
+    public static InterstitialAd mInterstitialAd;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
@@ -46,6 +52,7 @@ public class LevelActivity extends BaseActivity implements View.OnClickListener 
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
         hearts = new ImageView[]{
                 findViewById(R.id.heart1),
                 findViewById(R.id.heart2),
@@ -55,9 +62,42 @@ public class LevelActivity extends BaseActivity implements View.OnClickListener 
         };
 
         level = getIntent().getIntExtra("LEVEL", 1);
-
         gameView = findViewById(R.id.gameView);
 
+        // Drawer setup
+        drawerLayout = findViewById(R.id.drawerLayout);
+        drawerMenu = findViewById(R.id.drawerMenu);
+
+        // Pause game when drawer opens, resume when it closes
+        drawerLayout.addDrawerListener(new DrawerLayout.SimpleDrawerListener() {
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                gameView.pause();
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                gameView.resume();
+            }
+        });
+
+        // Drawer menu buttons
+        findViewById(R.id.menuContinue).setOnClickListener(v -> {
+            drawerLayout.closeDrawer(Gravity.END);
+            // onDrawerClosed will resume the game
+        });
+
+        findViewById(R.id.menuRetry).setOnClickListener(v -> {
+            Intent intent = new Intent(this, LevelActivity.class);
+            intent.putExtra("LEVEL", level);
+            startActivity(intent);
+            finish();
+        });
+
+        findViewById(R.id.menuExit).setOnClickListener(v -> {
+            startActivity(new Intent(this, LevelsActivity.class));
+            finish();
+        });
 
         user = SharedPreferencesUtil.getUser(LevelActivity.this);
         gameView.setAbility(user.getAppearance());
@@ -80,9 +120,7 @@ public class LevelActivity extends BaseActivity implements View.OnClickListener 
                     }
 
                     @Override
-                    public void onFailed(Exception e) {
-
-                    }
+                    public void onFailed(Exception e) {}
                 });
             }
 
@@ -97,8 +135,9 @@ public class LevelActivity extends BaseActivity implements View.OnClickListener 
                 return !coinDataSet.contains(coin);
             }
         });
-        moveRight= findViewById(R.id.move_right);
-        moveLeft= findViewById(R.id.move_left);
+
+        moveRight = findViewById(R.id.move_right);
+        moveLeft = findViewById(R.id.move_left);
         exit = findViewById(R.id.btn_exit);
         exit.setOnClickListener(this);
 
@@ -120,7 +159,6 @@ public class LevelActivity extends BaseActivity implements View.OnClickListener 
             return true;
         });
 
-
         databaseService.getLevel(level, new DatabaseService.DatabaseCallback<GameLevel>() {
             @Override
             public void onCompleted(GameLevel gameLevel) {
@@ -128,39 +166,34 @@ public class LevelActivity extends BaseActivity implements View.OnClickListener 
             }
 
             @Override
-            public void onFailed(Exception e) {
-
+            public void onFailed(Exception e) {}
+        });
+        //remove when done
+        databaseService.getLevel(level, new DatabaseService.DatabaseCallback<GameLevel>() {
+            @Override
+            public void onCompleted(GameLevel gameLevel) {
+                // הוסף את זה זמנית
+                Log.d("LevelDebug", "movingSpikes count: " + (gameLevel.movingSpikes != null ? gameLevel.movingSpikes.size() : "null"));
+                if (gameLevel.movingSpikes != null) {
+                    for (GameLevel.MovingObstecleData ms : gameLevel.movingSpikes) {
+                        Log.d("LevelDebug", "spike: x=" + ms.x + " y=" + ms.y + " w=" + ms.width + " h=" + ms.height + " rangeY=" + ms.rangeY);
+                    }
+                }
+                gameView.setLevel(level, gameLevel);
             }
+
+            @Override
+            public void onFailed(Exception e) {}
         });
-
-        String adUnitId = "ca-app-pub-3940256099942544/1033173712";
-
-        MobileAds.initialize(this, initializationStatus -> {
-            AdRequest adRequest = new AdRequest.Builder().build();
-
-            InterstitialAd.load(this, adUnitId, adRequest, new InterstitialAdLoadCallback() {
-                @Override
-                public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
-                    LevelActivity.mInterstitialAd = interstitialAd;
-                    Log.d("AdDebug", "Ad Loaded Successfully");
-                }
-
-                @Override
-                public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
-                    LevelActivity.mInterstitialAd = null;
-                    Log.e("AdDebug", "Ad Failed: " + loadAdError.getMessage() +
-                            " Code: " + loadAdError.getCode());
-                }
-            });
-        });
-
-
 
     }
+
     @Override
     protected void onResume() {
         super.onResume();
-        gameView.resume();
+        if (!drawerLayout.isDrawerOpen(Gravity.END)) {
+            gameView.resume();
+        }
     }
 
     @Override
@@ -171,11 +204,9 @@ public class LevelActivity extends BaseActivity implements View.OnClickListener 
 
     @Override
     public void onClick(View v) {
-        if(v.getId() ==  R.id.btn_exit){
-            gameView.showPausePopup();
-
+        if (v.getId() == R.id.btn_exit) {
+            // Open drawer and pause game
+            drawerLayout.openDrawer(Gravity.END);
         }
     }
-
-
 }

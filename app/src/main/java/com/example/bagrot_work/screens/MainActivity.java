@@ -39,18 +39,21 @@ public class MainActivity extends BaseActivity implements View.OnClickListener{
         });
 
         for (int i = 1; i <= 4; i++) {
-            DatabaseService.getInstance().CreateNewLevel(i, 750);
+            DatabaseService.getInstance().CreateNewLevel(i, 750, null);
         }
-        DatabaseService.getInstance().CreateNewLevel(5, 650);
+        DatabaseService.getInstance().CreateNewLevel(5, 650, new DatabaseService.DatabaseCallback<Void>() {
+            @Override
+            public void onCompleted(Void v) {
+                if (SharedPreferencesUtil.isUserLoggedIn(MainActivity.this)) {
+                    Intent intent = new Intent(MainActivity.this, Home_page.class);
+                    startActivity(intent);
+                    finish();
+                }
+            }
 
-
-        if (SharedPreferencesUtil.isUserLoggedIn(MainActivity.this)) {
-
-            Intent intent = new Intent(MainActivity.this, Home_page.class);
-            startActivity(intent);
-            finish();
-            return;
-        }
+            @Override
+            public void onFailed(Exception e) {}
+        });
 
 
 

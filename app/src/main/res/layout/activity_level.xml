@@ -1,100 +1,142 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.drawerlayout.widget.DrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+    android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".screens.LevelActivity">
+    android:layout_height="match_parent">
 
-    <com.example.bagrot_work.screens.GameView
-        android:id="@+id/gameView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <!-- Main game content -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".screens.LevelActivity">
 
-    <ImageButton
-        android:id="@+id/move_left"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginBottom="10dp"
-        android:background="@android:color/transparent"
-        android:padding="12dp"
-        android:rotation="-90"
-        android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:srcCompat="@drawable/arrow" />
+        <com.example.bagrot_work.screens.GameView
+            android:id="@+id/gameView"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageButton
-        android:id="@+id/move_right"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginBottom="10dp"
-        android:background="@android:color/transparent"
-        android:padding="12dp"
-        android:rotation="90"
-        android:scaleType="fitCenter"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/move_left"
-        app:srcCompat="@drawable/arrow" />
+        <ImageButton
+            android:id="@+id/move_left"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginBottom="10dp"
+            android:background="@android:color/transparent"
+            android:padding="12dp"
+            android:rotation="-90"
+            android:scaleType="fitCenter"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:srcCompat="@drawable/arrow" />
 
-    <ImageButton
-        android:id="@+id/btn_exit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:background="@android:color/transparent"
-        android:padding="8dp"
-        android:scaleType="fitCenter"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/pause" />
+        <ImageButton
+            android:id="@+id/move_right"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginBottom="10dp"
+            android:background="@android:color/transparent"
+            android:padding="12dp"
+            android:rotation="90"
+            android:scaleType="fitCenter"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/move_left"
+            app:srcCompat="@drawable/arrow" />
 
+        <!-- Hamburger menu button -->
+        <ImageButton
+            android:id="@+id/btn_exit"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:background="@android:color/transparent"
+            android:padding="8dp"
+            android:scaleType="fitCenter"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@android:drawable/ic_menu_sort_by_size" />
+
+        <LinearLayout
+            android:id="@+id/heartsContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="10dp">
+
+            <ImageView android:id="@+id/heart1" android:layout_width="60dp" android:layout_height="60dp" android:src="@drawable/full_heart" />
+            <ImageView android:id="@+id/heart2" android:layout_width="60dp" android:layout_height="60dp" android:src="@drawable/full_heart" />
+            <ImageView android:id="@+id/heart3" android:layout_width="60dp" android:layout_height="60dp" android:src="@drawable/full_heart" />
+            <ImageView android:id="@+id/heart4" android:layout_width="60dp" android:layout_height="60dp" android:src="@drawable/full_heart" />
+            <ImageView android:id="@+id/heart5" android:layout_width="60dp" android:layout_height="60dp" android:src="@drawable/full_heart" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Side Drawer Menu (opens from right) -->
     <LinearLayout
-        android:id="@+id/heartsContainer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="10dp">
+        android:id="@+id/drawerMenu"
+        android:layout_width="220dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="end"
+        android:background="@drawable/rounded_popup_bg"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp">
 
-        <ImageView
-            android:id="@+id/heart1"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:src="@drawable/full_heart" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Game Paused"
+            android:textColor="#FFFFFF"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="32dp" />
 
-        <ImageView
-            android:id="@+id/heart2"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:src="@drawable/full_heart" />
+        <LinearLayout
+            android:id="@+id/menuContinue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp">
+            <ImageView android:layout_width="40dp" android:layout_height="40dp" app:srcCompat="@drawable/play" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Continue" android:textColor="#FFFFFF" android:textSize="18sp" android:layout_marginStart="12dp" />
+        </LinearLayout>
 
-        <ImageView
-            android:id="@+id/heart3"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:src="@drawable/full_heart" />
+        <LinearLayout
+            android:id="@+id/menuRetry"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="12dp"
+            android:layout_marginBottom="16dp">
+            <ImageView android:layout_width="40dp" android:layout_height="40dp" app:srcCompat="@drawable/reload" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Retry" android:textColor="#FFFFFF" android:textSize="18sp" android:layout_marginStart="12dp" />
+        </LinearLayout>
 
-        <ImageView
-            android:id="@+id/heart4"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:src="@drawable/full_heart" />
-
-        <ImageView
-            android:id="@+id/heart5"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:src="@drawable/full_heart" />
+        <LinearLayout
+            android:id="@+id/menuExit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="12dp">
+            <ImageView android:layout_width="40dp" android:layout_height="40dp" app:srcCompat="@drawable/exit__1_" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Exit" android:textColor="#FFFFFF" android:textSize="18sp" android:layout_marginStart="12dp" />
+        </LinearLayout>
 
     </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.drawerlayout.widget.DrawerLayout>

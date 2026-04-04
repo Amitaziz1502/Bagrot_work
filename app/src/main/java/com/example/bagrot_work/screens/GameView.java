@@ -552,7 +552,6 @@ public class GameView extends SurfaceView implements Runnable {
         for (MovingObstecle ms : movingSpikes) {
             ms.update();
 
-            if (!gameStarted) continue;
 
             float playerCenterX = playerX + playerSize / 2f;
             float playerCenterY = playerY + playerSize / 2f;
@@ -574,8 +573,6 @@ public class GameView extends SurfaceView implements Runnable {
     }
 
     private void checkSpikeCollisions() {
-        if (!gameStarted) return;
-
         for (Rect spike : spikes) {
             if (playerX + playerSize > spike.left - 200 && playerX < spike.right + 200) {
                 if (Rect.intersects(playerRect, spike)) {
@@ -624,7 +621,7 @@ public class GameView extends SurfaceView implements Runnable {
             playerY = 500;
             savedCheckpointX = 200;
             savedCheckpointY = 500;
-            gameTimeMillis = 120000;
+            timeLeftMillis = 120000;
             resetPlayer();
             updateHeartsUI();
         }
@@ -929,7 +926,11 @@ public class GameView extends SurfaceView implements Runnable {
         for (MovingObstecle ms : movingSpikes) {
             boolean shouldDraw = (currentLevel == 5) ||
                     (ms.rect.right > worldOffsetX && ms.rect.left < worldOffsetX + getWidth());
+
             if (shouldDraw) {
+                Log.d("LevelDebug", "movingSpikeImg: " + (movingSpikeImg == null ? "NULL" : "OK"));
+                Log.d("LevelDebug", "spike rect: " + ms.rect.toString());
+
                 canvas.save();
                 float cx = ms.rect.centerX();
                 float cy = ms.rect.centerY();
