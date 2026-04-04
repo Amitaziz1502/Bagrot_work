@@ -50,8 +50,8 @@ public class GameView extends SurfaceView implements Runnable {
 
 
     public interface OnGameViewEvents {
-      public void onGameFinish();
-      public void onCoinCollected(GameLevel.CoinData coin);
+        public void onGameFinish();
+        public void onCoinCollected(GameLevel.CoinData coin);
         public boolean shouldShowCoin(GameLevel.CoinData coin);
     }
 
@@ -403,10 +403,8 @@ public class GameView extends SurfaceView implements Runnable {
 
 
     private void update() {
-        long time = System.currentTimeMillis();
-
         if (!isDead) {
-            //Checking if player has reached the end of the level
+            // Checking if player has reached the end of the level
             if (!endPopupShown && playerX >= worldWidth - playerSize) {
                 Log.d("Debug", "Level reached end point!");
                 updateLevelProgress();
@@ -417,201 +415,200 @@ public class GameView extends SurfaceView implements Runnable {
             }
 
             if (isLevelEnding) {
-                //Automatic run
-                playerX += moveSpeed;
-                movingRight = true;
-                movingLeft = false;
+                updateLevelEndingScene();
+            } else {
+                updatePhysics();
+                boolean onGround = checkFloorCollision();
 
-                if (blackAlpha < 255) {
-                    blackAlpha += 2;
-                }
-                this.onGameViewEvents.onGameFinish();
-            }
-            else {
-                if(getAbility() == Abilities.fastRun){
-                    moveSpeed = 18f;
-                }
+                onGround = checkPlatformCollisions(onGround);
 
-                velocityY += gravity;
-                playerY += velocityY;
+                onGround = checkMovingPlatformCollisions(onGround);
 
+                checkMovingSpikeCollisions();
 
-                if (movingLeft) playerX -= moveSpeed;
-                if (movingRight) playerX += moveSpeed;
+                checkSpikeCollisions();
 
-                playerRect.set((int)playerX + 20, (int)playerY + 20, (int)(playerX + playerSize) - 20, (int)(playerY + playerSize));
+                checkCoinCollisions();
 
-                boolean onGround = false;
+                checkCheckpointCollisions();
 
-                // Floor check
-                if(currentLevel==5){
-                    float groundY = getHeight() - 100 - playerSize + 15;
-                    if (playerY >= groundY) {
-                        playerY = groundY;
-                        velocityY = 0;
-                        onGround = true;
-                    }
-                }
-                else{
-                    float groundY = getHeight() - 200 - playerSize + 15;
-                    if (playerY >= groundY) {
-                        playerY = groundY;
-                        velocityY = 0;
-                        onGround = true;
-                    }
-                }
-
-                // Platform check
-                for (Rect platform : platforms) {
-                    if (platform.right < playerX - 500 || platform.left > playerX + 500) continue;
-
-                    if (Rect.intersects(playerRect, platform)) {
-
-                        //checking top
-                        if (velocityY >= 0 && (playerY + playerSize) <= (platform.top + velocityY + 20)) {
-                            playerY = platform.top - playerSize;
-                            velocityY = 0;
-                            onGround = true;
-                        }
-
-                        //checking bottom
-                        else if (velocityY < 0 && playerY + 20 > platform.bottom + velocityY) {
-                            playerY = platform.bottom;
-                            velocityY = 0;
-                        }
-
-                        else {
-                            // left side
-                            if (playerX + playerSize > platform.left && playerX < platform.left) {
-                                playerX = platform.left - playerSize;
-                            }
-                            //right side
-                            else if (playerX < platform.right && playerX + playerSize > platform.right) {
-                                playerX = platform.right;
-                            }
-                        }
-                    }
-                }
-
-                // Checking moving platforms
-                for (MovingObstecle mp : movingPlatforms) {
-                    mp.update();
-
-                    playerRect.set((int)playerX + 20, (int)playerY + 20, (int)(playerX + playerSize) - 20, (int)(playerY + playerSize));
-                    if (Rect.intersects(playerRect, mp.rect)) {
-
-                        // Landing on top of the platform
-                        if (velocityY >= 0 && (playerY + playerSize) <= (mp.rect.top + velocityY + 15)) {
-                            mp.isTriggered = true;
-                            playerY = mp.rect.top - playerSize;
-                            velocityY = 0;
-                            onGround = true;
-
-                            // Moving the player with the platform
-                            if (mp.endX > mp.startX) {
-                                if (mp.movingForward) {
-                                    playerX += mp.speed;
-                                } else {
-                                    playerX -= mp.speed;
-                                }
-                            }
-
-                            if (mp.endY != mp.startY) {
-                                if (mp.movingUp) {
-                                    playerY -= mp.speed;
-                                } else {
-                                    playerY += mp.speed;
-                                }
-                            }
-                        }
-
-                        //collision with bottom
-                        else if (velocityY < 0 && playerY >= (mp.rect.bottom + velocityY - 15)) {
-                            playerY = mp.rect.bottom;
-                            velocityY = 0;
-                        }
-
-                        //collision with the sides
-                        else {
-                            if (playerX + playerSize > mp.rect.left && playerX < mp.rect.left) {
-                                playerX = mp.rect.left - playerSize;
-                            }
-                            else if (playerX < mp.rect.right && playerX + playerSize > mp.rect.right) {
-                                playerX = mp.rect.right;
-                            }
-                        }
-                    }
-                }
-                //moving spikes
-                playerRect.set((int)playerX + 20, (int)playerY + 20, (int)(playerX + playerSize) - 20, (int)(playerY + playerSize));
-                //setting spike circle
-                for (MovingObstecle ms : movingSpikes) {
-                    ms.update();
-
-                    float playerCenterX = playerX + playerSize / 2f;
-                    float playerCenterY = playerY + playerSize / 2f;
-
-                    float spikeCenterX = ms.rect.centerX();
-                    float spikeCenterY = ms.rect.centerY();
-
-                    float dx = playerCenterX - spikeCenterX;
-                    float dy = playerCenterY - spikeCenterY;
-
-                    float distanceSquared = (dx * dx) + (dy * dy);
-
-                    float playerRadius = playerSize / 2f;
-                    float spikeRadius = ms.width / 2f;
-                    float minDistance = playerRadius + spikeRadius;
-
-                    float minDistanceSquared = minDistance * minDistance;
-
-                    if (distanceSquared < minDistanceSquared) {
-                        triggerDeath();
-                    }
-                }
                 if (onGround) {
                     jumps = 0;
                     isJumping = false;
                 }
 
-                // Spike check
-                for (Rect spike : spikes) {
-                    if (playerX + playerSize > spike.left - 200 && playerX < spike.right + 200) {
-                        if (Rect.intersects(playerRect, spike)) {
-                            triggerDeath();
-                            break;
-                        }
-                    }
-                }
-                // Coin collision
-                for (Coin coin : coins) {
-                    if (!this.onGameViewEvents.shouldShowCoin(coin.coinData)) continue;
-
-                    if (Rect.intersects(playerRect, coin.getPosition())) {
-                        coin.isCollected = true;
-                        coin.isVisible = false;
-                        coinsCollected++;
-                        // update coinData that user collide with this
-                        this.onGameViewEvents.onCoinCollected(coin.coinData);
-                    }
-
-                    coin.update();
-                }
-                // Checkpoint check
-                for (int i = 0; i < checkpoints.size(); i++) {
-                    Rect cp = checkpoints.get(i);
-                    if (Rect.intersects(playerRect, cp)) {
-                        savedCheckpointX = cp.left;
-                        savedCheckpointY = cp.top - playerSize + 10;
-                        checkpointActivated.set(i, true);
-                    }
-                }
-
+                updateTimer();
                 updateCamera();
             }
         }
 
         updateParticles();
+    }
+
+    private void updateLevelEndingScene() {
+        playerX += moveSpeed;
+        movingRight = true;
+        movingLeft = false;
+        if (blackAlpha < 255) {
+            blackAlpha += 2;
+        }
+        this.onGameViewEvents.onGameFinish();
+    }
+
+    private void updatePhysics() {
+        if (getAbility() == Abilities.fastRun) {
+            moveSpeed = 18f;
+        }
+        velocityY += gravity;
+        playerY += velocityY;
+        if (movingLeft) playerX -= moveSpeed;
+        if (movingRight) playerX += moveSpeed;
+        playerRect.set((int)playerX + 20, (int)playerY + 20, (int)(playerX + playerSize) - 20, (int)(playerY + playerSize));
+    }
+
+    private boolean checkFloorCollision() {
+        float groundY = (currentLevel == 5)
+                ? getHeight() - 100 - playerSize + 15
+                : getHeight() - 200 - playerSize + 15;
+
+        if (playerY >= groundY) {
+            playerY = groundY;
+            velocityY = 0;
+            return true;
+        }
+        return false;
+    }
+
+    private boolean checkPlatformCollisions(boolean onGround) {
+        for (Rect platform : platforms) {
+            if (platform.right < playerX - 500 || platform.left > playerX + 500) continue;
+
+            if (Rect.intersects(playerRect, platform)) {
+                // Top
+                if (velocityY >= 0 && (playerY + playerSize) <= (platform.top + velocityY + 20)) {
+                    playerY = platform.top - playerSize;
+                    velocityY = 0;
+                    onGround = true;
+                }
+                // Bottom
+                else if (velocityY < 0 && playerY + 20 > platform.bottom + velocityY) {
+                    playerY = platform.bottom;
+                    velocityY = 0;
+                }
+                // Sides
+                else {
+                    if (playerX + playerSize > platform.left && playerX < platform.left) {
+                        playerX = platform.left - playerSize;
+                    } else if (playerX < platform.right && playerX + playerSize > platform.right) {
+                        playerX = platform.right;
+                    }
+                }
+            }
+        }
+        return onGround;
+    }
+
+    private boolean checkMovingPlatformCollisions(boolean onGround) {
+        for (MovingObstecle mp : movingPlatforms) {
+            mp.update();
+            playerRect.set((int)playerX + 20, (int)playerY + 20, (int)(playerX + playerSize) - 20, (int)(playerY + playerSize));
+
+            if (Rect.intersects(playerRect, mp.rect)) {
+                // Top
+                if (velocityY >= 0 && (playerY + playerSize) <= (mp.rect.top + velocityY + 15)) {
+                    mp.isTriggered = true;
+                    playerY = mp.rect.top - playerSize;
+                    velocityY = 0;
+                    onGround = true;
+
+                    if (mp.endX > mp.startX) {
+                        playerX += mp.movingForward ? mp.speed : -mp.speed;
+                    }
+                    if (mp.endY != mp.startY) {
+                        playerY += mp.movingUp ? -mp.speed : mp.speed;
+                    }
+                }
+                // Bottom
+                else if (velocityY < 0 && playerY >= (mp.rect.bottom + velocityY - 15)) {
+                    playerY = mp.rect.bottom;
+                    velocityY = 0;
+                }
+                // Sides
+                else {
+                    if (playerX + playerSize > mp.rect.left && playerX < mp.rect.left) {
+                        playerX = mp.rect.left - playerSize;
+                    } else if (playerX < mp.rect.right && playerX + playerSize > mp.rect.right) {
+                        playerX = mp.rect.right;
+                    }
+                }
+            }
+        }
+        return onGround;
+    }
+
+    private void checkMovingSpikeCollisions() {
+        playerRect.set((int)playerX + 20, (int)playerY + 20, (int)(playerX + playerSize) - 20, (int)(playerY + playerSize));
+
+        for (MovingObstecle ms : movingSpikes) {
+            ms.update();
+
+            if (!gameStarted) continue;
+
+            float playerCenterX = playerX + playerSize / 2f;
+            float playerCenterY = playerY + playerSize / 2f;
+            float spikeCenterX = ms.rect.centerX();
+            float spikeCenterY = ms.rect.centerY();
+
+            float dx = playerCenterX - spikeCenterX;
+            float dy = playerCenterY - spikeCenterY;
+            float distanceSquared = (dx * dx) + (dy * dy);
+
+            float playerRadius = playerSize / 2f;
+            float spikeRadius = ms.width / 2f;
+            float minDistance = playerRadius + spikeRadius;
+
+            if (distanceSquared < minDistance * minDistance) {
+                triggerDeath();
+            }
+        }
+    }
+
+    private void checkSpikeCollisions() {
+        if (!gameStarted) return;
+
+        for (Rect spike : spikes) {
+            if (playerX + playerSize > spike.left - 200 && playerX < spike.right + 200) {
+                if (Rect.intersects(playerRect, spike)) {
+                    triggerDeath();
+                    break;
+                }
+            }
+        }
+    }
+
+    private void checkCoinCollisions() {
+        for (Coin coin : coins) {
+            if (!this.onGameViewEvents.shouldShowCoin(coin.coinData)) continue;
+
+            if (Rect.intersects(playerRect, coin.getPosition())) {
+                coin.isCollected = true;
+                coin.isVisible = false;
+                coinsCollected++;
+                this.onGameViewEvents.onCoinCollected(coin.coinData);
+            }
+            coin.update();
+        }
+    }
+
+    private void checkCheckpointCollisions() {
+        for (int i = 0; i < checkpoints.size(); i++) {
+            Rect cp = checkpoints.get(i);
+            if (Rect.intersects(playerRect, cp)) {
+                savedCheckpointX = cp.left;
+                savedCheckpointY = cp.top - playerSize + 10;
+                checkpointActivated.set(i, true);
+            }
+        }
     }
 
 
@@ -622,7 +619,14 @@ public class GameView extends SurfaceView implements Runnable {
         }
 
         if (currentLives == 0) {
-            return;
+            currentLives = 5;
+            playerX = 200;
+            playerY = 500;
+            savedCheckpointX = 200;
+            savedCheckpointY = 500;
+            gameTimeMillis = 120000;
+            resetPlayer();
+            updateHeartsUI();
         }
     }
     private void updateHeartsUI() {
@@ -660,9 +664,11 @@ public class GameView extends SurfaceView implements Runnable {
             velocityY = -35f;
             jumps++;
             isJumping = true;
-            gameStarted = true;
+            if (!gameStarted) {
+                gameStarted = true;
+                lastTimeUpdate = System.currentTimeMillis();
+            }
             jumpCurrentFrame = 0;
-
         }
     }
 
@@ -689,7 +695,7 @@ public class GameView extends SurfaceView implements Runnable {
         velocityY = 0;
         worldOffsetX = Math.max(0, playerX - (float) getWidth() / 2);
         isDead = false;
-        particles.clear(); // Just in case removing the particles
+        particles.clear();
 
         for (MovingObstecle mp : movingPlatforms) {
             mp.reset();
@@ -698,10 +704,35 @@ public class GameView extends SurfaceView implements Runnable {
             ms.reset();
         }
 
-        //Resetting clock
         gameStarted = false;
-        if (timeLeftMillis > 10000) {
-            textPaint.setColor(Color.WHITE);
+        textPaint.setColor(Color.WHITE);
+    }
+
+    public void updateTimer() {
+        if (gameStarted && !isLevelEnding) {
+            long currentTime = System.currentTimeMillis();
+            long elapsed = currentTime - lastTimeUpdate;
+
+            timeLeftMillis -= elapsed;
+            lastTimeUpdate = currentTime;
+
+            if (timeLeftMillis <= 0) {
+                timeLeftMillis = 0;
+                isLevelEnding = true;
+                triggerDeath();
+                resetPlayer();
+                isLevelEnding = false;
+            }
+
+            int minutes = (int) (timeLeftMillis / 60000);
+            int seconds = (int) (timeLeftMillis % 60000) / 1000;
+            int millis = (int) (timeLeftMillis % 1000) / 10;
+
+            timeText = String.format("%02d:%02d:%02d", minutes, seconds, millis);
+
+            if (timeLeftMillis <= 10000) {
+                textPaint.setColor(Color.RED);
+            }
         }
     }
 
@@ -713,256 +744,241 @@ public class GameView extends SurfaceView implements Runnable {
         if (canvas == null) return;
 
         try {
+            drawBackground(canvas);
 
-            // Drawing background
-            float backgroundscroll = worldOffsetX > 200 ? 200 : worldOffsetX;
-            if (scaledBackground != null && currentLevel==1) {
-                canvas.drawBitmap(scaledBackground, -backgroundscroll, -150, paint);
-            }
-            else if(scaledBackground2 != null && currentLevel==2){
-                canvas.drawBitmap(scaledBackground2, -backgroundscroll, -150, paint);
-            }
-            else if (scaledBackground3 != null && currentLevel==3) {
-                canvas.drawBitmap(scaledBackground3, -backgroundscroll, -150, paint);
-            }
-            else if (scaledBackground4 != null && currentLevel==4) {
-                canvas.drawBitmap(scaledBackground4, -backgroundscroll, -150, paint);
-            }
-            else if (scaledBackground4 != null && currentLevel==5) {
-                canvas.drawBitmap(scaledBackground5, -backgroundscroll, -150, paint);
-            }
-            else {
-                canvas.drawColor(Color.BLACK);
-            }
-
-            // Setting world
             canvas.save();
             canvas.translate(-worldOffsetX, worldOffsetY);
 
-
-            // Drawing floor + obstecals
-            paint.setAlpha(255);
-            if(currentLevel==1){
-                paint.setColor(floor_color1);
-                canvas.drawRect(worldOffsetX, getHeight() - 200, worldOffsetX + getWidth(), getHeight(), paint);
-            }
-            else if(currentLevel==2){
-                paint.setColor(floor_color2);
-                canvas.drawRect(worldOffsetX, getHeight() - 200, worldOffsetX + getWidth(), getHeight(), paint);
-
-            }
-            else if(currentLevel==3){
-                paint.setColor(floor_color3);
-                canvas.drawRect(worldOffsetX, getHeight() - 200, worldOffsetX + getWidth(), getHeight(), paint);
-
-            }
-            else if(currentLevel==4){
-                paint.setColor(floor_color2);
-                canvas.drawRect(worldOffsetX, getHeight() - 200, worldOffsetX + getWidth(), getHeight(), paint);
-
-            }
-            else if(currentLevel==5){
-                paint.setColor(floor_color4);
-                canvas.drawRect(worldOffsetX, getHeight() - 100, worldOffsetX + getWidth(), getHeight(), paint);
-                playerSize = 125;
-            }
-
-            for (Rect spike : spikes) {
-                if (spike.right > worldOffsetX && spike.left < worldOffsetX + getWidth()) {
-
-                    int startX = (int) Math.max(spike.left, (Math.floor(worldOffsetX / 100) * 100));
-                    int endX = (int) Math.min(spike.right, worldOffsetX + getWidth());
-
-                    for (int x = startX; x < endX; x += 100) {
-                        canvas.drawBitmap(spikeimage, x, spike.top, null);
-                    }
-                }
-            }
-
-            // Drawing particles ( using in death  )
-            int size = particles.size();
-            for (int i = 0; i < size; i++) {
-                Particle p = particles.get(i);
-                paint.setAlpha(p.alpha);
-                canvas.drawRect(p.x, p.y, p.x + 8, p.y + 8, paint);
-            }
-            paint.setAlpha(255);
-
-            if (coins != null && coinImage != null) {
-                for (Coin coin : coins) {
-                    Rect coinPosition = coin.getPosition();
-
-                    boolean isVisibleOnScreen = coinPosition.right > (worldOffsetX - 100) &&
-                            coinPosition.left < (worldOffsetX + getWidth() + 100);
-
-                    if (!coin.isVisible || !isVisibleOnScreen) continue;
-
-                    canvas.save();
-                    coinPaint.setAlpha(coin.alpha);
-
-                    float centerX = coinPosition.centerX();
-                    float centerY = coinPosition.centerY() + coin.yOffset;
-
-                    canvas.rotate(coin.rotationAngle, centerX, centerY);
-
-                    Rect drawRect = new Rect(
-                            coinPosition.left,
-                            (int)(coinPosition.top + coin.yOffset),
-                            coinPosition.right,
-                            (int)(coinPosition.bottom + coin.yOffset)
-                    );
-
-                    canvas.drawBitmap(coinImage, null, drawRect, coinPaint);
-                    canvas.restore();
-                }
-                coinPaint.setAlpha(255);
-            }
-
-            // Drawing player animation cat
-            if (!isDead ) {
-                canvas.save();
-
-                if (movingLeft) {
-                    canvas.scale(-1, 1, playerX + playerSize / 2, playerY + playerSize / 2);
-                }
-
-                Bitmap currentSheet;
-                int currentTotalFrames;
-                int frameToDraw;
-                long time = System.currentTimeMillis();
-
-                if (isJumping) {
-                    // Jump mode
-                    currentSheet = jumpSpriteSheet;
-                    currentTotalFrames = jumpFrameCount;
-
-                    if (time - lastJumpFrameTime > 80) { //
-
-                        if (jumpCurrentFrame < jumpFrameCount - 1) {
-                            jumpCurrentFrame++;
-                        }
-                        lastJumpFrameTime = time;
-                    }
-                    frameToDraw = jumpCurrentFrame;
-
-                } else if (movingLeft || movingRight) {
-                    //Running mode
-                    currentSheet = spriteSheet;
-                    currentTotalFrames = frameCount;
-                    jumpCurrentFrame = 0;
-
-                    if (time - lastFrameTime > frameDuration) {
-                        currentFrame = (currentFrame + 1) % frameCount;
-                        lastFrameTime = time;
-                    }
-                    frameToDraw = currentFrame;
-
-                } else {
-                    //Idle mode
-
-                    currentSheet = idleSpriteSheet;
-                    currentTotalFrames = idleFrameCount;
-                    jumpCurrentFrame = 0;
-
-                    if (time - lastIdleFrameTime > 250 && gameStarted) {
-                        idleCurrentFrame = (idleCurrentFrame + 1) % idleFrameCount;
-                        lastIdleFrameTime = time;
-                    }
-                    frameToDraw = idleCurrentFrame;
-                }
-
-
-                //Drawing character
-                if (currentSheet != null) {
-                    int fWidth = currentSheet.getWidth() / currentTotalFrames;
-                    int fHeight = currentSheet.getHeight();
-                    spriteSrcRect.set(frameToDraw * fWidth, 0, (frameToDraw + 1) * fWidth, fHeight);
-                    spriteDstRect.set((int)playerX, (int)playerY, (int)(playerX + playerSize), (int)(playerY + playerSize));
-
-                    canvas.drawBitmap(currentSheet, spriteSrcRect, spriteDstRect, paint);
-                }
-
-                canvas.restore();
-            }
-
-            // Drawing platforms
-            paint.setColor(Color.GRAY);
-            for (Rect platform : platforms) {
-                if (platform.right > worldOffsetX && platform.left < worldOffsetX + getWidth()) {
-                    canvas.drawRect(platform, paint);
-                }
-            }
-
-            //Drawing moving platforms
-            paint.setColor(Color.BLUE);
-            for (MovingObstecle mp : movingPlatforms) {
-                if (mp.rect.right > worldOffsetX && mp.rect.left < worldOffsetX + getWidth()) {
-                    canvas.drawRect(mp.rect, paint);
-                }
-            }
-
-            //Drawing moving spikes
-            for (MovingObstecle ms : movingSpikes) {
-                boolean shouldDraw = (currentLevel == 5) ||
-                        (ms.rect.right > worldOffsetX && ms.rect.left < worldOffsetX + getWidth());
-
-                if (shouldDraw) {
-                    canvas.save();
-
-                    float cx = ms.rect.centerX();
-                    float cy = ms.rect.centerY();
-
-                    canvas.rotate(ms.rotationAngle, cx, cy);
-
-                    canvas.drawBitmap(movingSpikeImg, null, ms.rect, null);
-
-                    canvas.restore();
-                }
-            }
-
-
-            //Drawing flag
-            for (int i = 0; i < checkpoints.size(); i++) {
-                Rect cp = checkpoints.get(i);
-
-                if (cp.right > worldOffsetX && cp.left < worldOffsetX + getWidth()) {
-                    Bitmap flag = checkpointActivated.get(i) ? checkpointImageAfter : checkpointImageBefore;
-
-                    if (flag != null) {
-                        canvas.drawBitmap(flag, cp.left, cp.bottom - flag.getHeight(), paint);
-                    }
-                }
-            }
-
-            //Drawing text
-            for (FloatingText ft : floatingTexts) {
-                if (ft.x > worldOffsetX - 500 && ft.x < worldOffsetX + getWidth() + 500) {
-                    canvas.drawText(ft.text, ft.x, ft.y, floatingTextPaint);
-                }
-            }
+            drawFloor(canvas);
+            drawSpikes(canvas);
+            drawParticles(canvas);
+            drawCoins(canvas);
+            drawPlayer(canvas);
+            drawPlatforms(canvas);
+            drawMovingPlatforms(canvas);
+            drawMovingSpikes(canvas);
+            drawCheckpoints(canvas);
+            drawFloatingTexts(canvas);
 
             paint.setColor(main_color);
             canvas.restore();
 
-            //Score
-            if (coinImage != null && totalCoinsInLevel != 0) {
-                int xPos = getWidth() - 700;
-                int yPos = getHeight()-850;
-                canvas.drawBitmap(coinImage, null, new Rect(xPos, yPos - 60, xPos + 60, yPos), null);
-                String scoreText = coinsCollected + " / " + totalCoinsInLevel;
-                canvas.drawText(scoreText, xPos + 100, yPos, textPaint);
-            }
-
-            //Drawing the black out
-            if (blackAlpha > 0) {
-                paint.setColor(Color.BLACK);
-                paint.setAlpha(blackAlpha);
-                canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
-                paint.setAlpha(255);
-            }
+            drawHUD(canvas);
+            drawBlackout(canvas);
 
         } finally {
             surfaceHolder.unlockCanvasAndPost(canvas);
+        }
+    }
+
+    private void drawBackground(Canvas canvas) {
+        float backgroundscroll = worldOffsetX > 200 ? 200 : worldOffsetX;
+        if (scaledBackground != null && currentLevel == 1) {
+            canvas.drawBitmap(scaledBackground, -backgroundscroll, -150, paint);
+        } else if (scaledBackground2 != null && currentLevel == 2) {
+            canvas.drawBitmap(scaledBackground2, -backgroundscroll, -150, paint);
+        } else if (scaledBackground3 != null && currentLevel == 3) {
+            canvas.drawBitmap(scaledBackground3, -backgroundscroll, -150, paint);
+        } else if (scaledBackground4 != null && currentLevel == 4) {
+            canvas.drawBitmap(scaledBackground4, -backgroundscroll, -150, paint);
+        } else if (scaledBackground5 != null && currentLevel == 5) {
+            canvas.drawBitmap(scaledBackground5, -backgroundscroll, -150, paint);
+        } else {
+            canvas.drawColor(Color.BLACK);
+        }
+    }
+
+    private void drawFloor(Canvas canvas) {
+        paint.setAlpha(255);
+        if (currentLevel == 1) {
+            paint.setColor(floor_color1);
+            canvas.drawRect(worldOffsetX, getHeight() - 200, worldOffsetX + getWidth(), getHeight(), paint);
+        } else if (currentLevel == 2) {
+            paint.setColor(floor_color2);
+            canvas.drawRect(worldOffsetX, getHeight() - 200, worldOffsetX + getWidth(), getHeight(), paint);
+        } else if (currentLevel == 3) {
+            paint.setColor(floor_color3);
+            canvas.drawRect(worldOffsetX, getHeight() - 200, worldOffsetX + getWidth(), getHeight(), paint);
+        } else if (currentLevel == 4) {
+            paint.setColor(floor_color2);
+            canvas.drawRect(worldOffsetX, getHeight() - 200, worldOffsetX + getWidth(), getHeight(), paint);
+        } else if (currentLevel == 5) {
+            paint.setColor(floor_color4);
+            canvas.drawRect(worldOffsetX, getHeight() - 100, worldOffsetX + getWidth(), getHeight(), paint);
+            playerSize = 125;
+        }
+    }
+
+    private void drawSpikes(Canvas canvas) {
+        for (Rect spike : spikes) {
+            if (spike.right > worldOffsetX && spike.left < worldOffsetX + getWidth()) {
+                int startX = (int) Math.max(spike.left, (Math.floor(worldOffsetX / 100) * 100));
+                int endX = (int) Math.min(spike.right, worldOffsetX + getWidth());
+                for (int x = startX; x < endX; x += 100) {
+                    canvas.drawBitmap(spikeimage, x, spike.top, null);
+                }
+            }
+        }
+    }
+
+    private void drawParticles(Canvas canvas) {
+        int size = particles.size();
+        for (int i = 0; i < size; i++) {
+            Particle p = particles.get(i);
+            paint.setAlpha(p.alpha);
+            canvas.drawRect(p.x, p.y, p.x + 8, p.y + 8, paint);
+        }
+        paint.setAlpha(255);
+    }
+
+    private void drawCoins(Canvas canvas) {
+        if (coins == null || coinImage == null) return;
+        for (Coin coin : coins) {
+            Rect coinPosition = coin.getPosition();
+            boolean isVisibleOnScreen = coinPosition.right > (worldOffsetX - 100) &&
+                    coinPosition.left < (worldOffsetX + getWidth() + 100);
+            if (!coin.isVisible || !isVisibleOnScreen) continue;
+
+            canvas.save();
+            coinPaint.setAlpha(coin.alpha);
+            float centerX = coinPosition.centerX();
+            float centerY = coinPosition.centerY() + coin.yOffset;
+            canvas.rotate(coin.rotationAngle, centerX, centerY);
+            Rect drawRect = new Rect(
+                    coinPosition.left,
+                    (int)(coinPosition.top + coin.yOffset),
+                    coinPosition.right,
+                    (int)(coinPosition.bottom + coin.yOffset)
+            );
+            canvas.drawBitmap(coinImage, null, drawRect, coinPaint);
+            canvas.restore();
+        }
+        coinPaint.setAlpha(255);
+    }
+
+    private void drawPlayer(Canvas canvas) {
+        if (isDead) return;
+
+        canvas.save();
+        if (movingLeft) {
+            canvas.scale(-1, 1, playerX + playerSize / 2, playerY + playerSize / 2);
+        }
+
+        Bitmap currentSheet;
+        int currentTotalFrames;
+        int frameToDraw;
+        long time = System.currentTimeMillis();
+
+        if (isJumping) {
+            currentSheet = jumpSpriteSheet;
+            currentTotalFrames = jumpFrameCount;
+            if (time - lastJumpFrameTime > 80) {
+                if (jumpCurrentFrame < jumpFrameCount - 1) jumpCurrentFrame++;
+                lastJumpFrameTime = time;
+            }
+            frameToDraw = jumpCurrentFrame;
+        } else if (movingLeft || movingRight) {
+            currentSheet = spriteSheet;
+            currentTotalFrames = frameCount;
+            jumpCurrentFrame = 0;
+            if (time - lastFrameTime > frameDuration) {
+                currentFrame = (currentFrame + 1) % frameCount;
+                lastFrameTime = time;
+            }
+            frameToDraw = currentFrame;
+        } else {
+            currentSheet = idleSpriteSheet;
+            currentTotalFrames = idleFrameCount;
+            jumpCurrentFrame = 0;
+            if (time - lastIdleFrameTime > 250 && gameStarted) {
+                idleCurrentFrame = (idleCurrentFrame + 1) % idleFrameCount;
+                lastIdleFrameTime = time;
+            }
+            frameToDraw = idleCurrentFrame;
+        }
+
+        if (currentSheet != null) {
+            int fWidth = currentSheet.getWidth() / currentTotalFrames;
+            int fHeight = currentSheet.getHeight();
+            spriteSrcRect.set(frameToDraw * fWidth, 0, (frameToDraw + 1) * fWidth, fHeight);
+            spriteDstRect.set((int)playerX, (int)playerY, (int)(playerX + playerSize), (int)(playerY + playerSize));
+            canvas.drawBitmap(currentSheet, spriteSrcRect, spriteDstRect, paint);
+        }
+        canvas.restore();
+    }
+
+    private void drawPlatforms(Canvas canvas) {
+        paint.setColor(Color.GRAY);
+        for (Rect platform : platforms) {
+            if (platform.right > worldOffsetX && platform.left < worldOffsetX + getWidth()) {
+                canvas.drawRect(platform, paint);
+            }
+        }
+    }
+
+    private void drawMovingPlatforms(Canvas canvas) {
+        paint.setColor(Color.BLUE);
+        for (MovingObstecle mp : movingPlatforms) {
+            if (mp.rect.right > worldOffsetX && mp.rect.left < worldOffsetX + getWidth()) {
+                canvas.drawRect(mp.rect, paint);
+            }
+        }
+    }
+
+    private void drawMovingSpikes(Canvas canvas) {
+        for (MovingObstecle ms : movingSpikes) {
+            boolean shouldDraw = (currentLevel == 5) ||
+                    (ms.rect.right > worldOffsetX && ms.rect.left < worldOffsetX + getWidth());
+            if (shouldDraw) {
+                canvas.save();
+                float cx = ms.rect.centerX();
+                float cy = ms.rect.centerY();
+                canvas.rotate(ms.rotationAngle, cx, cy);
+                canvas.drawBitmap(movingSpikeImg, null, ms.rect, null);
+                canvas.restore();
+            }
+        }
+    }
+
+    private void drawCheckpoints(Canvas canvas) {
+        for (int i = 0; i < checkpoints.size(); i++) {
+            Rect cp = checkpoints.get(i);
+            if (cp.right > worldOffsetX && cp.left < worldOffsetX + getWidth()) {
+                Bitmap flag = checkpointActivated.get(i) ? checkpointImageAfter : checkpointImageBefore;
+                if (flag != null) {
+                    canvas.drawBitmap(flag, cp.left, cp.bottom - flag.getHeight(), paint);
+                }
+            }
+        }
+    }
+
+    private void drawFloatingTexts(Canvas canvas) {
+        for (FloatingText ft : floatingTexts) {
+            if (ft.x > worldOffsetX - 500 && ft.x < worldOffsetX + getWidth() + 500) {
+                canvas.drawText(ft.text, ft.x, ft.y, floatingTextPaint);
+            }
+        }
+    }
+
+    private void drawHUD(Canvas canvas) {
+        // Score
+        if (coinImage != null && totalCoinsInLevel != 0) {
+            int xPos = getWidth() - 700;
+            int yPos = getHeight() - 850;
+            canvas.drawBitmap(coinImage, null, new Rect(xPos, yPos - 60, xPos + 60, yPos), null);
+            String scoreText = coinsCollected + " / " + totalCoinsInLevel;
+            canvas.drawText(scoreText, xPos + 100, yPos, textPaint);
+        }
+        // Timer
+        canvas.drawText(timeText, getWidth() / 2f - 100, 120, textPaint);
+    }
+
+    private void drawBlackout(Canvas canvas) {
+        if (blackAlpha > 0) {
+            paint.setColor(Color.BLACK);
+            paint.setAlpha(blackAlpha);
+            canvas.drawRect(0, 0, getWidth(), getHeight(), paint);
+            paint.setAlpha(255);
         }
     }
     public void resume() {
@@ -982,12 +998,18 @@ public class GameView extends SurfaceView implements Runnable {
 
     public void moveLeft(boolean moving) {
         movingLeft = moving;
-        if (moving) gameStarted = true;
+        if (moving && !gameStarted) {
+            gameStarted = true;
+            lastTimeUpdate = System.currentTimeMillis();
+        }
     }
 
     public void moveRight(boolean moving) {
         movingRight = moving;
-        if (moving) gameStarted = true;
+        if (moving && !gameStarted) {
+            gameStarted = true;
+            lastTimeUpdate = System.currentTimeMillis();
+        }
     }
 
     public void moveForward() {
@@ -1459,4 +1481,3 @@ public class GameView extends SurfaceView implements Runnable {
     }
 
 }
-

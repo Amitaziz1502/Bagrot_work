@@ -1,12 +1,14 @@
 package com.example.bagrot_work.screens;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -16,6 +18,11 @@ import com.example.bagrot_work.models.GameLevel;
 import com.example.bagrot_work.models.User;
 import com.example.bagrot_work.services.DatabaseService;
 import com.example.bagrot_work.utils.SharedPreferencesUtil;
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.LoadAdError;
+import com.google.android.gms.ads.MobileAds;
+import com.google.android.gms.ads.interstitial.InterstitialAd;
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -29,8 +36,7 @@ public class LevelActivity extends BaseActivity implements View.OnClickListener 
     User user;
 
     int level;
-
-    @Override
+    public static InterstitialAd mInterstitialAd; 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
@@ -126,6 +132,28 @@ public class LevelActivity extends BaseActivity implements View.OnClickListener 
 
             }
         });
+
+        String adUnitId = "ca-app-pub-3940256099942544/1033173712";
+
+        MobileAds.initialize(this, initializationStatus -> {
+            AdRequest adRequest = new AdRequest.Builder().build();
+
+            InterstitialAd.load(this, adUnitId, adRequest, new InterstitialAdLoadCallback() {
+                @Override
+                public void onAdLoaded(@NonNull InterstitialAd interstitialAd) {
+                    LevelActivity.mInterstitialAd = interstitialAd;
+                    Log.d("AdDebug", "Ad Loaded Successfully");
+                }
+
+                @Override
+                public void onAdFailedToLoad(@NonNull LoadAdError loadAdError) {
+                    LevelActivity.mInterstitialAd = null;
+                    Log.e("AdDebug", "Ad Failed: " + loadAdError.getMessage() +
+                            " Code: " + loadAdError.getCode());
+                }
+            });
+        });
+
 
 
     }
